@@ -73,8 +73,9 @@ Generate an image from a text prompt.
 |-----------|----------|-------------|
 | `prompt` | Yes | Image description |
 | `aspect_ratio` | No | `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `2:3`, `3:2` |
-| `resolution` | No | `1K`, `2K`, `4K` |
+| `resolution` | No | `1K`, `2K`, `4K` (Gemini only) |
 | `count` | No | Number of images (OpenAI only) |
+| `output_format` | No | `png`, `jpeg`, `webp` (OpenAI only) |
 | `model` | No | Model name |
 | `provider` | No | `gemini` (default) or `openai` |
 | `output` | No | Output file path |
@@ -89,8 +90,12 @@ Edit an existing image with text instructions. No mask needed — the model dete
 | `input` | Yes | Path to the image to edit |
 | `prompt` | Yes | Edit instruction |
 | `aspect_ratio` | No | Output aspect ratio |
-| `resolution` | No | Output resolution |
+| `resolution` | No | Output resolution (Gemini only) |
+| `output_format` | No | `png`, `jpeg`, `webp` (OpenAI only) |
+| `model` | No | Model name |
+| `provider` | No | `gemini` (default) or `openai` |
 | `output` | No | Output file path |
+| `output_dir` | No | Output directory |
 
 ### edit_last
 
@@ -100,8 +105,12 @@ Edit the last generated or edited image. No input path needed — automatically 
 |-----------|----------|-------------|
 | `prompt` | Yes | Edit instruction |
 | `aspect_ratio` | No | Output aspect ratio |
-| `resolution` | No | Output resolution |
+| `resolution` | No | Output resolution (Gemini only) |
+| `output_format` | No | `png`, `jpeg`, `webp` (OpenAI only) |
+| `model` | No | Model name |
+| `provider` | No | `gemini` (default) or `openai` |
 | `output` | No | Output file path |
+| `output_dir` | No | Output directory |
 
 ### list_providers
 
@@ -160,9 +169,9 @@ Generate the same prompt with different providers to let the user choose:
 If MCP tools are not available (MCP server not configured), fall back to CLI via Bash:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/dist/cli.bundle.js" generate -p "prompt" -o output.png
-node "${CLAUDE_PLUGIN_ROOT}/dist/cli.bundle.js" edit -i input.png -p "edit instruction"
-node "${CLAUDE_PLUGIN_ROOT}/dist/cli.bundle.js" edit --last -p "refine further"
+npx imgx-mcp generate -p "prompt" -o output.png
+npx imgx-mcp edit -i input.png -p "edit instruction"
+npx imgx-mcp edit --last -p "refine further"
 ```
 
 See [providers reference](references/providers.md) for detailed provider capabilities.

@@ -19,8 +19,10 @@
     "gemini",
     "openai",
     "ai",
-    "cli",
-    "mcp"
+    "mcp",
+    "skill",
+    "claude-code",
+    "cli"
   ],
   "author": "SOMA COFFEE KYOTO",
   "license": "MIT",
@@ -35,6 +37,7 @@
   "files": [
     "dist/cli.bundle.js",
     "dist/mcp.bundle.js",
+    "skills/",
     "LICENSE",
     "README.md",
     "CHANGELOG.md"

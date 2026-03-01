@@ -45,7 +45,7 @@
 | IMAGE_EDITING | `input` | Edit with text instructions |
 | ASPECT_RATIO | `aspect_ratio` | 7 ratios: `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `9:16`, `16:9` |
 | MULTIPLE_OUTPUTS | `count` | Generate up to 4 images per request |
-| OUTPUT_FORMAT | — | PNG, JPEG, WebP (via CLI `--format`) |
+| OUTPUT_FORMAT | `output_format` | PNG, JPEG, WebP |
 
 ### Provider comparison
 

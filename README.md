@@ -24,6 +24,57 @@ That's it. Your AI agent can now generate and edit images.
 
 > **Windows**: Replace `"command": "npx"` with `"command": "cmd"` and prepend `"/c"` to the args array.
 
+## Skill (Claude Code)
+
+For Claude Code users, imgx-mcp includes an `image-generation` skill — a guided prompt that teaches Claude how to use the MCP tools effectively. With the skill installed, type `/image-generation` to start a guided workflow.
+
+### Install the skill
+
+Copy the skill directory from the npm package or GitHub repository to your project:
+
+```bash
+# From npm (after npx has cached the package)
+cp -r $(npm root -g)/imgx-mcp/skills .claude/skills
+
+# Or from the GitHub repository
+curl -sL https://raw.githubusercontent.com/somacoffeekyoto/imgx-mcp/main/skills/image-generation/SKILL.md \
+  -o .claude/skills/image-generation/SKILL.md --create-dirs
+curl -sL https://raw.githubusercontent.com/somacoffeekyoto/imgx-mcp/main/skills/image-generation/references/providers.md \
+  -o .claude/skills/image-generation/references/providers.md --create-dirs
+```
+
+Or place skill files manually:
+
+```
+your-project/
+  .mcp.json                              ← MCP server config (Quick start above)
+  .claude/
+    skills/
+      image-generation/
+        SKILL.md                         ← skill prompt
+        references/
+          providers.md                   ← provider reference
+```
+
+The skill files are included in the [npm package](https://www.npmjs.com/package/imgx-mcp) under `skills/` and in the [GitHub repository](https://github.com/somacoffeekyoto/imgx-mcp/tree/main/skills/image-generation).
+
+> **Personal skill** (all projects): Place in `~/.claude/skills/image-generation/` instead of `.claude/skills/`.
+
+### What the skill does
+
+The skill guides Claude Code through image workflows: blog covers, iterative editing, provider comparison, icon generation. It knows the MCP tool parameters and best practices, so you get better results with less effort.
+
+### MCP server vs Skill
+
+| | MCP server | Skill |
+|---|---|---|
+| What it does | Exposes image tools to AI agents | Guided prompt for using the tools |
+| Works with | Any MCP-compatible tool | Claude Code |
+| Install | Add to `.mcp.json` | Copy skill files to project |
+| Team sharing | Commit `.mcp.json` to repo | Commit `.claude/skills/` to repo |
+
+**Recommended**: Set up the MCP server (Quick start) + install the skill if you use Claude Code.
+
 ## MCP tools
 
 | Tool | Description |
@@ -46,46 +97,6 @@ The `edit_last` tool uses the output of the previous `generate_image` or `edit_i
 ```
 
 No need to specify file paths between steps.
-
-## Skill (Claude Code)
-
-For Claude Code users, imgx-mcp provides an `image-generation` skill — a guided prompt that helps Claude Code use the MCP tools effectively.
-
-### Option A: Install as a plugin (includes MCP + Skill)
-
-```
-/plugin marketplace add somacoffeekyoto/imgx-mcp
-/plugin install imgx-mcp@somacoffeekyoto-imgx-mcp
-```
-
-This registers the MCP server and installs the skill in one step.
-
-### Option B: MCP server + standalone skill
-
-If you already have imgx-mcp configured as an MCP server, you can add the skill separately. Copy the skill directory to your project:
-
-```
-your-project/
-  .mcp.json                         ← imgx-mcp MCP server config
-  skills/
-    image-generation/
-      SKILL.md                      ← skill prompt file
-      references/
-        providers.md                ← provider reference
-```
-
-The skill file content is available in [`skills/image-generation/SKILL.md`](skills/image-generation/SKILL.md) in this repository.
-
-### MCP server vs Plugin vs Skill
-
-| | MCP server | Skill | Plugin |
-|---|---|---|---|
-| What it does | Exposes image tools to AI agents | Guided prompt for using the tools | Bundles MCP + Skill together |
-| Works with | Any MCP-compatible tool | Claude Code only | Claude Code only |
-| Install | Add to `.mcp.json` | Copy skill directory to project | `/plugin install` |
-| Team sharing | Commit `.mcp.json` to repo | Commit `skills/` to repo | Each member installs |
-
-**Recommended**: Use MCP server setup (Quick start above). Add the skill if you use Claude Code.
 
 ## API key setup
 
@@ -129,8 +140,6 @@ Only include the API keys for providers you want to use. At least one is require
   }
 }
 ```
-
-Or install as a [plugin](#option-a-install-as-a-plugin-includes-mcp--skill) for automatic MCP registration + skill.
 
 ### Gemini CLI
 
@@ -235,7 +244,7 @@ Each provider declares its supported capabilities. Adding a new provider means i
 | `PERSON_CONTROL` | Control person generation in output |
 | `OUTPUT_FORMAT` | Choose output format (PNG, JPEG, WebP) |
 
-## CLI (alternative)
+## CLI
 
 imgx-mcp also works as a standalone command-line tool.
 
@@ -335,36 +344,18 @@ All CLI commands output JSON:
 {"success": true, "filePaths": ["./output.png"]}
 ```
 
-## Claude Code plugin (alternative)
+## Claude Code plugin
 
-The plugin bundles MCP server + skill in one step. Convenient for Claude Code users who don't want to configure `.mcp.json` manually.
-
-### Install
+The plugin bundles MCP server + skill in one step. If you prefer not to configure `.mcp.json` and skill files manually:
 
 ```
 /plugin marketplace add somacoffeekyoto/imgx-mcp
 /plugin install imgx-mcp@somacoffeekyoto-imgx-mcp
 ```
 
-### Update
+Update: `/plugin` → installed → imgx-mcp → update. If the update shows no changes, uninstall and reinstall.
 
-```
-/plugin update → select "installed" → imgx-mcp → update
-```
-
-If the update shows no changes, uninstall and reinstall:
-
-```
-/plugin uninstall imgx-mcp@somacoffeekyoto-imgx-mcp
-/plugin install imgx-mcp@somacoffeekyoto-imgx-mcp
-```
-
-### Uninstall
-
-```
-/plugin uninstall imgx-mcp@somacoffeekyoto-imgx-mcp
-/plugin marketplace remove somacoffeekyoto-imgx-mcp
-```
+Uninstall: `/plugin uninstall imgx-mcp@somacoffeekyoto-imgx-mcp` then `/plugin marketplace remove somacoffeekyoto-imgx-mcp`.
 
 ## Development
 
@@ -385,6 +376,10 @@ The build produces two bundles:
 ### MCP server
 
 Remove the `imgx` entry from your tool's MCP configuration file.
+
+### Skill
+
+Delete the `image-generation/` directory from `.claude/skills/` or `~/.claude/skills/`.
 
 ### CLI
 
