@@ -6,12 +6,12 @@
     "url": "https://github.com/somacoffeekyoto/imgx-mcp",
     "source": "github"
   },
-  "version": "0.9.0",
+  "version": "0.9.1",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "imgx-mcp",
-      "version": "0.9.0",
+      "version": "0.9.1",
       "transport": {
         "type": "stdio"
       },

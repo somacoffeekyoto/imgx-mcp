@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.9.1 (2026-03-02)
+
+### Added
+
+- **Skill included in npm package** — `skills/image-generation/SKILL.md` and `references/providers.md` now ship with the npm package, making it easier to install the Claude Code skill
+
+### Changed
+
+- README restructured: Skill section moved after Quick Start, Plugin section moved to bottom
+- Skill install instructions added (npm copy, curl from GitHub, manual placement)
+- SKILL.md: added missing MCP parameters (`output_format`, `output_dir`, `model`, `provider` on edit tools)
+- SKILL.md: CLI fallback updated from plugin path to `npx imgx-mcp`
+- providers.md: OpenAI `OUTPUT_FORMAT` corrected from CLI-only to MCP `output_format` parameter
+- npm keywords: added `skill`, `claude-code`
+
 ## 0.9.0 (2026-02-28)
 
 ### Changed
