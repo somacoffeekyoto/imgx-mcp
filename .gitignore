@@ -11,3 +11,4 @@ mcp-publisher.exe
 vhs.exe
 vhs.zip
 .claude/settings.local.json
+.worktrees/
