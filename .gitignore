@@ -7,3 +7,6 @@ imgx-*.webp
 .env
 .env.*
 mcp-publisher.exe
+.mcpregistry_*
+vhs.exe
+vhs.zip
