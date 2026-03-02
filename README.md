@@ -403,6 +403,7 @@ MIT — [SOMA COFFEE KYOTO](https://github.com/somacoffeekyoto)
 
 ## Links
 
+- [Official page](https://somacoffee.net/imgx-mcp/)
 - [GitHub](https://github.com/somacoffeekyoto/imgx-mcp)
 - [npm](https://www.npmjs.com/package/imgx-mcp)
 - [MCP Registry](https://registry.modelcontextprotocol.io)
