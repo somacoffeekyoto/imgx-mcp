@@ -12,6 +12,7 @@
     "build": "tsc",
     "bundle": "npm run build && node esbuild.config.js",
     "dev": "tsc --watch",
+    "build:skill-zip": "python scripts/build-skill-zip.py",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -39,6 +40,7 @@
   "files": [
     "dist/cli.bundle.js",
     "dist/mcp.bundle.js",
+    "dist/image-generation-skill.zip",
     "skills/",
     "LICENSE",
     "README.md",

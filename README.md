@@ -60,6 +60,16 @@ The skill files are included in the [npm package](https://www.npmjs.com/package/
 
 > **Personal skill** (all projects): Place in `~/.claude/skills/image-generation/` instead of `.claude/skills/`.
 
+### Claude Desktop
+
+Claude Desktop supports skills via ZIP upload:
+
+1. Download [`image-generation-skill.zip`](dist/image-generation-skill.zip) from the repository (or find it in the [npm package](https://www.npmjs.com/package/imgx-mcp) under `dist/`)
+2. In Claude Desktop: **Settings > Profile > Customize > Skills > Add Skill**
+3. Upload the ZIP
+
+> Update the skill by re-downloading and re-uploading the ZIP after new releases.
+
 ### What the skill does
 
 The skill guides Claude Code through image workflows: blog covers, iterative editing, provider comparison, icon generation. It knows the MCP tool parameters and best practices, so you get better results with less effort.
@@ -69,7 +79,7 @@ The skill guides Claude Code through image workflows: blog covers, iterative edi
 | | MCP server | Skill |
 |---|---|---|
 | What it does | Exposes image tools to AI agents | Guided prompt for using the tools |
-| Works with | Any MCP-compatible tool | Claude Code |
+| Works with | Any MCP-compatible tool | Claude Code, Claude Desktop |
 | Install | Add to `.mcp.json` | Copy skill files to project |
 | Team sharing | Commit `.mcp.json` to repo | Commit `.claude/skills/` to repo |
 
@@ -82,9 +92,15 @@ The skill guides Claude Code through image workflows: blog covers, iterative edi
 | `generate_image` | Generate an image from a text prompt |
 | `edit_image` | Edit an existing image with text instructions |
 | `edit_last` | Edit the last generated/edited image (no input path needed) |
+| `undo_edit` | Undo the last edit, reverting to the previous image in the session |
+| `redo_edit` | Redo a previously undone edit |
+| `edit_history` | Show all sessions and their edit history with metadata |
+| `switch_session` | Switch to a different editing session |
+| `clear_history` | Clear all history (optionally delete image files) |
+| `set_output_dir` | Change the default output directory (optionally move existing files) |
 | `list_providers` | List available providers and capabilities |
 
-Images are saved to `~/Pictures/imgx/` by default. File paths are returned in the response. Inline image preview is included in MCP responses (base64).
+Images are saved to `~/Pictures/imgx/<session-id>/` by default. Each session gets its own directory. File paths are returned in the response. Inline image preview is included in MCP responses (base64).
 
 ### Iterative editing
 
@@ -97,6 +113,27 @@ The `edit_last` tool uses the output of the previous `generate_image` or `edit_i
 ```
 
 No need to specify file paths between steps.
+
+### Session management
+
+Each `generate_image` call starts a new session. Subsequent `edit_last` calls are added to the same session, forming an edit chain. Each session has its own output directory.
+
+**Undo / Redo** — Step backward and forward through the edit chain:
+
+```
+generate → edit_last → edit_last → edit_last
+                                    ↑ current
+                       ← undo_edit
+                       ↑ current
+                            redo_edit →
+                                    ↑ current
+```
+
+After undo, calling `edit_last` branches from the current position (newer entries are discarded).
+
+**Session switching** — Use `edit_history` to see all sessions, then `switch_session` to resume a previous session. The `edit_last` tool will use the current position in the switched session.
+
+**Output directory** — `edit_last` inherits the output directory from the session. If `generate_image` was called with `output_dir`, all subsequent `edit_last` calls in that session output to the same directory.
 
 ## API key setup
 
@@ -222,7 +259,7 @@ imgx separates **model-independent** and **model-dependent** concerns:
 ```
 MCP server (tool definitions, stdio transport)    CLI (argument parsing, output formatting)
  ↓                                                 ↓
-Core (Capability enum, ImageProvider interface, provider registry, file I/O)
+Core (Capability enum, ImageProvider interface, provider registry, file I/O, history)
  ↓
 Provider (model-specific API calls, capability declarations)
 ```
@@ -269,6 +306,17 @@ imgx edit -i photo.png -p "Change the background to sunset" -o edited.png
 imgx edit -i photo.png -p "Make the background darker"
 imgx edit --last -p "Add warm lighting"
 imgx edit --last -p "Crop to 16:9" -o final.png
+
+# Undo / redo
+imgx undo               # Revert to previous image in session
+imgx redo               # Re-apply an undone edit
+
+# History
+imgx history            # Show all sessions and entries
+imgx history switch <session-id>  # Switch to a different session
+imgx history clear      # Clear all history (interactive)
+imgx history clear --yes          # Clear without confirmation
+imgx history clear --keep-files   # Clear history but keep image files
 
 # Provider management
 imgx providers          # List providers and capabilities

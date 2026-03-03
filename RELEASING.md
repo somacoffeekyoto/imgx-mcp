@@ -18,7 +18,8 @@ skills/
         └── providers.md # Provider and model reference
 dist/
 ├── cli.bundle.js        # Bundled CLI (tracked in git for plugin distribution)
-└── mcp.bundle.js        # Bundled MCP server
+├── mcp.bundle.js        # Bundled MCP server
+└── image-generation-skill.zip  # Skill ZIP for Claude Desktop upload
 ```
 
 ### Plugin configuration files
@@ -47,7 +48,8 @@ Update in all locations:
 
 ```bash
 npm run bundle
-# commit dist/cli.bundle.js and dist/mcp.bundle.js (plugin distribution relies on git)
+npm run build:skill-zip
+# commit dist/ (bundles + skill ZIP — plugin distribution relies on git)
 git push
 ```
 
@@ -66,4 +68,5 @@ npm publish --access public --otp=YOUR_OTP
 | MCP Registry | `./mcp-publisher publish` succeeds with new version |
 | PulseMCP | Auto-ingested from MCP Registry (daily/weekly) |
 | Claude Code plugin | Users reinstall to get latest git |
-| Claude Desktop | `npx imgx-mcp@latest` fetches new version on next launch |
+| Claude Desktop MCP | `npx imgx-mcp@latest` fetches new version on next launch |
+| Claude Desktop skill | Upload `dist/image-generation-skill.zip` via Settings > Skills |
