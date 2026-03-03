@@ -69820,7 +69820,7 @@ function buildImageContent(images, paths, extra) {
 }
 var server = new McpServer({
   name: "imgx",
-  version: "1.0.2"
+  version: "1.0.3"
 });
 initGemini();
 initOpenAI();
@@ -70039,7 +70039,7 @@ server.tool("clear_history", "Clear all edit history. Optionally delete image fi
     const result = clearHistory();
     let filesDeleted = 0;
     if (args.delete_files) {
-      const { existsSync, rmSync } = await import("node:fs");
+      const { existsSync, rmSync, rmdirSync } = await import("node:fs");
       const { dirname: dirname2 } = await import("node:path");
       const dirs = /* @__PURE__ */ new Set();
       for (const fp of result.filePaths) {
@@ -70054,7 +70054,7 @@ server.tool("clear_history", "Clear all edit history. Optionally delete image fi
       }
       for (const dir of dirs) {
         try {
-          rmSync(dir);
+          rmdirSync(dir);
         } catch {
         }
       }

@@ -1,5 +1,5 @@
 import { createInterface } from "node:readline";
-import { rmSync, existsSync } from "node:fs";
+import { rmSync, rmdirSync, existsSync } from "node:fs";
 import { dirname } from "node:path";
 import { getHistory, switchSession, clearHistory } from "../../core/history.js";
 import * as out from "../output.js";
@@ -100,7 +100,7 @@ function deleteSessionFiles(filePaths: string[]): number {
   }
   // Try to remove empty session directories
   for (const dir of dirs) {
-    try { rmSync(dir, { recursive: false }); } catch { /* non-empty or missing */ }
+    try { rmdirSync(dir); } catch { /* non-empty or missing */ }
   }
   return count;
 }

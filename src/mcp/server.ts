@@ -35,7 +35,7 @@ function buildImageContent(
 
 const server = new McpServer({
   name: "imgx",
-  version: "1.0.2",
+  version: "1.0.3",
 });
 
 // プロバイダ初期化
@@ -325,7 +325,7 @@ server.tool(
       const result = clearHistory();
       let filesDeleted = 0;
       if (args.delete_files) {
-        const { existsSync, rmSync } = await import("node:fs");
+        const { existsSync, rmSync, rmdirSync } = await import("node:fs");
         const { dirname } = await import("node:path");
         const dirs = new Set<string>();
         for (const fp of result.filePaths) {
@@ -334,7 +334,7 @@ server.tool(
           } catch { /* skip */ }
         }
         for (const dir of dirs) {
-          try { rmSync(dir); } catch { /* non-empty or missing */ }
+          try { rmdirSync(dir); } catch { /* non-empty or missing */ }
         }
       }
       return { content: [{ type: "text", text: JSON.stringify({ success: true, cleared: true, filesDeleted }) }] };

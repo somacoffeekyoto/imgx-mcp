@@ -1,10 +1,16 @@
 # Changelog
 
+## 1.0.3 (2026-03-03)
+
+### Fixed
+
+- **`clear_history` directory removal** — `rmSync()` does not remove directories; replaced with `rmdirSync()` in both MCP server and CLI to correctly remove empty session directories after file deletion
+
 ## 1.0.2 (2026-03-03)
 
 ### Fixed
 
-- **v1.0.1 published with stale bundles** — `npm run bundle` (esbuild) was not run before `npm publish`, so v1.0.1 contained old `dist/mcp.bundle.js`. v1.0.2 is the correct release with all fixes below
+- **v1.0.1 published with stale bundles** — `npm run bundle` (esbuild) was not run before `npm publish`, so v1.0.1 contained old `dist/mcp.bundle.js`. v1.0.2 is the correct release with session outputDir inheritance fix
 
 ## 1.0.1 (2026-03-03) [YANKED — published with stale bundles]
 

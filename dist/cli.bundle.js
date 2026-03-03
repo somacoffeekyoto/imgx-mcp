@@ -40016,7 +40016,7 @@ function showAll() {
 
 // build/cli/commands/history.js
 import { createInterface as createInterface2 } from "node:readline";
-import { rmSync as rmSync2, existsSync as existsSync3 } from "node:fs";
+import { rmSync as rmSync2, rmdirSync, existsSync as existsSync3 } from "node:fs";
 import { dirname as dirname2 } from "node:path";
 function runHistory(args) {
   const sub = args[0];
@@ -40102,7 +40102,7 @@ function deleteSessionFiles(filePaths) {
   }
   for (const dir of dirs) {
     try {
-      rmSync2(dir, { recursive: false });
+      rmdirSync(dir);
     } catch {
     }
   }
@@ -40138,7 +40138,7 @@ function runRedo() {
 }
 
 // build/cli/index.js
-var VERSION2 = "1.0.2";
+var VERSION2 = "1.0.3";
 var HELP = `imgx v${VERSION2} \u2014 AI image generation and editing for MCP-compatible AI agents
 
 Commands:
