@@ -6808,6 +6808,89 @@ var require_dist = __commonJS({
   }
 });
 
+// build/core/config.js
+var config_exports = {};
+__export(config_exports, {
+  getConfigPath: () => getConfigPath,
+  loadConfig: () => loadConfig,
+  loadProjectConfig: () => loadProjectConfig,
+  resolveApiKey: () => resolveApiKey,
+  resolveDefault: () => resolveDefault,
+  saveConfig: () => saveConfig
+});
+import { readFileSync, writeFileSync, mkdirSync, chmodSync } from "node:fs";
+import { join, resolve } from "node:path";
+import { homedir, platform } from "node:os";
+function configDir() {
+  if (platform() === "win32") {
+    return join(process.env.APPDATA || join(homedir(), "AppData", "Roaming"), "imgx");
+  }
+  return join(process.env.XDG_CONFIG_HOME || join(homedir(), ".config"), "imgx");
+}
+function configPath() {
+  return join(configDir(), "config.json");
+}
+function loadConfig() {
+  try {
+    const raw = readFileSync(configPath(), "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+}
+function saveConfig(config2) {
+  const dir = configDir();
+  mkdirSync(dir, { recursive: true });
+  const path2 = configPath();
+  writeFileSync(path2, JSON.stringify(config2, null, 2) + "\n", "utf-8");
+  if (platform() !== "win32") {
+    try {
+      chmodSync(path2, 384);
+    } catch {
+    }
+  }
+}
+function resolveApiKey(providerName) {
+  const envMap = {
+    gemini: process.env.GEMINI_API_KEY,
+    openai: process.env.OPENAI_API_KEY
+  };
+  if (envMap[providerName])
+    return envMap[providerName];
+  const config2 = loadConfig();
+  return config2.providers?.[providerName]?.apiKey;
+}
+function loadProjectConfig() {
+  try {
+    const raw = readFileSync(resolve(".imgxrc"), "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+}
+function resolveDefault(key) {
+  const envMap = {
+    provider: process.env.IMGX_PROVIDER,
+    model: process.env.IMGX_MODEL,
+    outputDir: process.env.IMGX_OUTPUT_DIR
+  };
+  if (envMap[key])
+    return envMap[key];
+  const project = loadProjectConfig();
+  if (project.defaults?.[key])
+    return project.defaults[key];
+  const config2 = loadConfig();
+  return config2.defaults?.[key];
+}
+function getConfigPath() {
+  return configPath();
+}
+var init_config = __esm({
+  "build/core/config.js"() {
+    "use strict";
+  }
+});
+
 // node_modules/retry/lib/retry_operation.js
 var require_retry_operation = __commonJS({
   "node_modules/retry/lib/retry_operation.js"(exports, module) {
@@ -15311,7 +15394,7 @@ var require_gaxios = __commonJS({
     var retry_js_1 = require_retry3();
     var stream_1 = __require("stream");
     var interceptor_js_1 = require_interceptor();
-    var randomUUID2 = async () => globalThis.crypto?.randomUUID() || (await import("crypto")).randomUUID();
+    var randomUUID4 = async () => globalThis.crypto?.randomUUID() || (await import("crypto")).randomUUID();
     var HTTP_STATUS_NO_CONTENT = 204;
     var Gaxios = class {
       agentCache = /* @__PURE__ */ new Map();
@@ -15584,7 +15667,7 @@ var require_gaxios = __commonJS({
          */
         ["Blob", "File", "FormData"].includes(opts.data?.constructor?.name || "");
         if (opts.multipart?.length) {
-          const boundary = await randomUUID2();
+          const boundary = await randomUUID4();
           preparedHeaders.set("content-type", `multipart/related; boundary=${boundary}`);
           opts.body = stream_1.Readable.from(this.getMultipartRequest(opts.multipart, boundary));
         } else if (shouldDirectlyPassData) {
@@ -28795,6 +28878,179 @@ var require_websocket_server = __commonJS({
         abortHandshake(socket, code, message, headers);
       }
     }
+  }
+});
+
+// build/core/history.js
+var history_exports = {};
+__export(history_exports, {
+  clearHistory: () => clearHistory,
+  createSession: () => createSession,
+  getActiveEntry: () => getActiveEntry,
+  getHistory: () => getHistory,
+  loadHistory: () => loadHistory,
+  pushHistory: () => pushHistory,
+  redoHistory: () => redoHistory,
+  saveHistory: () => saveHistory,
+  switchSession: () => switchSession,
+  undoHistory: () => undoHistory,
+  updateHistoryPaths: () => updateHistoryPaths
+});
+import { readFileSync as readFileSync4, writeFileSync as writeFileSync3, mkdirSync as mkdirSync3 } from "node:fs";
+import { join as join3 } from "node:path";
+import { homedir as homedir3, platform as platform2 } from "node:os";
+import { randomUUID as randomUUID2 } from "node:crypto";
+function historyDir() {
+  if (process.env.IMGX_TEST_CONFIG_DIR)
+    return process.env.IMGX_TEST_CONFIG_DIR;
+  if (platform2() === "win32") {
+    return join3(process.env.APPDATA || join3(homedir3(), "AppData", "Roaming"), "imgx");
+  }
+  return join3(process.env.XDG_CONFIG_HOME || join3(homedir3(), ".config"), "imgx");
+}
+function historyPath() {
+  return join3(historyDir(), HISTORY_FILE);
+}
+function emptyHistory() {
+  return {
+    sessions: [],
+    activeSessionId: null,
+    maxEntriesPerSession: 10
+  };
+}
+function loadHistory() {
+  try {
+    const raw = readFileSync4(historyPath(), "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return emptyHistory();
+  }
+}
+function saveHistory(history) {
+  const dir = historyDir();
+  mkdirSync3(dir, { recursive: true });
+  writeFileSync3(historyPath(), JSON.stringify(history, null, 2) + "\n", "utf-8");
+}
+function createSession() {
+  return {
+    id: `s-${randomUUID2().slice(0, 8)}`,
+    entries: [],
+    cursor: 0
+  };
+}
+function pushHistory(entry, opts) {
+  const history = loadHistory();
+  if (opts.newSession) {
+    const session2 = createSession();
+    if (opts.sessionId)
+      session2.id = opts.sessionId;
+    session2.entries.push(entry);
+    history.sessions.push(session2);
+    history.activeSessionId = session2.id;
+    saveHistory(history);
+    return session2.id;
+  }
+  const session = history.sessions.find((s2) => s2.id === history.activeSessionId);
+  if (!session)
+    throw new Error("No active session. Run generate first.");
+  if (session.cursor > 0) {
+    session.entries.splice(0, session.cursor);
+    session.cursor = 0;
+  }
+  session.entries.unshift(entry);
+  while (session.entries.length > history.maxEntriesPerSession) {
+    session.entries.splice(session.entries.length - 2, 1);
+  }
+  saveHistory(history);
+  return session.id;
+}
+function getActiveEntry() {
+  const history = loadHistory();
+  if (!history.activeSessionId)
+    return void 0;
+  const session = history.sessions.find((s2) => s2.id === history.activeSessionId);
+  if (!session || session.entries.length === 0)
+    return void 0;
+  return session.entries[session.cursor];
+}
+function getActiveSession() {
+  const history = loadHistory();
+  if (!history.activeSessionId) {
+    throw new Error("No active session. Run generate first.");
+  }
+  const session = history.sessions.find((s2) => s2.id === history.activeSessionId);
+  if (!session) {
+    throw new Error("No active session. Run generate first.");
+  }
+  return { history, session };
+}
+function undoHistory() {
+  const { history, session } = getActiveSession();
+  const maxCursor = session.entries.length - 1;
+  if (session.cursor >= maxCursor) {
+    throw new Error("Already at the oldest entry in this session");
+  }
+  session.cursor += 1;
+  saveHistory(history);
+  return {
+    entry: session.entries[session.cursor],
+    position: `${session.cursor + 1}/${session.entries.length}`
+  };
+}
+function redoHistory() {
+  const { history, session } = getActiveSession();
+  if (session.cursor <= 0) {
+    throw new Error("Already at the latest entry");
+  }
+  session.cursor -= 1;
+  saveHistory(history);
+  return {
+    entry: session.entries[session.cursor],
+    position: `${session.cursor + 1}/${session.entries.length}`
+  };
+}
+function switchSession(sessionId) {
+  const history = loadHistory();
+  const session = history.sessions.find((s2) => s2.id === sessionId);
+  if (!session) {
+    throw new Error(`Session not found: ${sessionId}`);
+  }
+  history.activeSessionId = sessionId;
+  saveHistory(history);
+}
+function getHistory() {
+  return loadHistory();
+}
+function clearHistory() {
+  const history = loadHistory();
+  const filePaths = [];
+  for (const session of history.sessions) {
+    for (const entry of session.entries) {
+      filePaths.push(...entry.filePaths);
+    }
+  }
+  history.sessions = [];
+  history.activeSessionId = null;
+  saveHistory(history);
+  return { filePaths };
+}
+function updateHistoryPaths(oldBase, newBase) {
+  const history = loadHistory();
+  for (const session of history.sessions) {
+    for (const entry of session.entries) {
+      entry.filePaths = entry.filePaths.map((p) => p.startsWith(oldBase) ? newBase + p.slice(oldBase.length) : p);
+      if (entry.inputImage && entry.inputImage.startsWith(oldBase)) {
+        entry.inputImage = newBase + entry.inputImage.slice(oldBase.length);
+      }
+    }
+  }
+  saveHistory(history);
+}
+var HISTORY_FILE;
+var init_history = __esm({
+  "build/core/history.js"() {
+    "use strict";
+    HISTORY_FILE = "output-history.json";
   }
 });
 
@@ -52100,74 +52356,8 @@ function listProviders() {
   return Array.from(providers.values());
 }
 
-// build/core/config.js
-import { readFileSync, writeFileSync, mkdirSync, chmodSync } from "node:fs";
-import { join, resolve } from "node:path";
-import { homedir, platform } from "node:os";
-function configDir() {
-  if (platform() === "win32") {
-    return join(process.env.APPDATA || join(homedir(), "AppData", "Roaming"), "imgx");
-  }
-  return join(process.env.XDG_CONFIG_HOME || join(homedir(), ".config"), "imgx");
-}
-function configPath() {
-  return join(configDir(), "config.json");
-}
-function loadConfig() {
-  try {
-    const raw = readFileSync(configPath(), "utf-8");
-    return JSON.parse(raw);
-  } catch {
-    return {};
-  }
-}
-function resolveApiKey(providerName) {
-  const envMap = {
-    gemini: process.env.GEMINI_API_KEY,
-    openai: process.env.OPENAI_API_KEY
-  };
-  if (envMap[providerName])
-    return envMap[providerName];
-  const config2 = loadConfig();
-  return config2.providers?.[providerName]?.apiKey;
-}
-function loadProjectConfig() {
-  try {
-    const raw = readFileSync(resolve(".imgxrc"), "utf-8");
-    return JSON.parse(raw);
-  } catch {
-    return {};
-  }
-}
-function resolveDefault(key) {
-  const envMap = {
-    provider: process.env.IMGX_PROVIDER,
-    model: process.env.IMGX_MODEL,
-    outputDir: process.env.IMGX_OUTPUT_DIR
-  };
-  if (envMap[key])
-    return envMap[key];
-  const project = loadProjectConfig();
-  if (project.defaults?.[key])
-    return project.defaults[key];
-  const config2 = loadConfig();
-  return config2.defaults?.[key];
-}
-function saveLastOutput(filePaths) {
-  const dir = configDir();
-  mkdirSync(dir, { recursive: true });
-  const path2 = join(dir, "last-output.json");
-  writeFileSync(path2, JSON.stringify({ filePaths, timestamp: Date.now() }) + "\n", "utf-8");
-}
-function loadLastOutput() {
-  try {
-    const raw = readFileSync(join(configDir(), "last-output.json"), "utf-8");
-    const data = JSON.parse(raw);
-    return data.filePaths;
-  } catch {
-    return void 0;
-  }
-}
+// build/providers/gemini/index.js
+init_config();
 
 // node_modules/@google/genai/dist/node/index.mjs
 var import_p_retry = __toESM(require_p_retry(), 1);
@@ -66199,24 +66389,24 @@ var normalizeArch = (arch) => {
     return `other:${arch}`;
   return "unknown";
 };
-var normalizePlatform = (platform2) => {
-  platform2 = platform2.toLowerCase();
-  if (platform2.includes("ios"))
+var normalizePlatform = (platform3) => {
+  platform3 = platform3.toLowerCase();
+  if (platform3.includes("ios"))
     return "iOS";
-  if (platform2 === "android")
+  if (platform3 === "android")
     return "Android";
-  if (platform2 === "darwin")
+  if (platform3 === "darwin")
     return "MacOS";
-  if (platform2 === "win32")
+  if (platform3 === "win32")
     return "Windows";
-  if (platform2 === "freebsd")
+  if (platform3 === "freebsd")
     return "FreeBSD";
-  if (platform2 === "openbsd")
+  if (platform3 === "openbsd")
     return "OpenBSD";
-  if (platform2 === "linux")
+  if (platform3 === "linux")
     return "Linux";
-  if (platform2)
-    return `Other:${platform2}`;
+  if (platform3)
+    return `Other:${platform3}`;
   return "Unknown";
 };
 var _platformHeaders;
@@ -69247,6 +69437,7 @@ function getApiKeyFromEnv() {
 }
 
 // build/core/storage.js
+init_config();
 import { readFileSync as readFileSync2, writeFileSync as writeFileSync2, mkdirSync as mkdirSync2 } from "node:fs";
 import { dirname, join as join2, resolve as resolve2 } from "node:path";
 import { randomUUID } from "node:crypto";
@@ -69271,9 +69462,16 @@ function fallbackOutputDir(outputDir) {
     return configured;
   return join2(homedir2(), "Pictures", "imgx");
 }
-function saveImage(image, outputPath, outputDir) {
+function saveImage(image, outputPath, outputDir, sessionId) {
   const ext = MIME_TO_EXT[image.mimeType] || ".png";
-  const filePath = outputPath ? resolve2(outputPath) : resolve2(fallbackOutputDir(outputDir), `imgx-${randomUUID().slice(0, 8)}${ext}`);
+  let filePath;
+  if (outputPath) {
+    filePath = resolve2(outputPath);
+  } else {
+    const baseDir = fallbackOutputDir(outputDir);
+    const targetDir = sessionId ? join2(baseDir, sessionId) : baseDir;
+    filePath = resolve2(targetDir, `imgx-${randomUUID().slice(0, 8)}${ext}`);
+  }
   mkdirSync2(dirname(filePath), { recursive: true });
   writeFileSync2(filePath, image.data);
   return filePath;
@@ -69408,6 +69606,9 @@ function initGemini() {
     return;
   registerProvider(new GeminiProvider(apiKey));
 }
+
+// build/providers/openai/index.js
+init_config();
 
 // build/providers/openai/client.js
 import { readFileSync as readFileSync3 } from "node:fs";
@@ -69597,6 +69798,8 @@ function initOpenAI() {
 }
 
 // build/mcp/server.js
+init_history();
+import { randomUUID as randomUUID3 } from "node:crypto";
 function buildImageContent(images, paths, extra) {
   const content = [];
   for (const img of images) {
@@ -69607,7 +69810,7 @@ function buildImageContent(images, paths, extra) {
 }
 var server = new McpServer({
   name: "imgx",
-  version: "0.9.0"
+  version: "1.0.0"
 });
 initGemini();
 initOpenAI();
@@ -69644,13 +69847,22 @@ server.tool("generate_image", "Generate an image from a text prompt", {
     if (!result.success || result.images.length === 0) {
       return { content: [{ type: "text", text: `Error: ${result.error || "Generation failed"}` }] };
     }
+    const sessionId = `s-${randomUUID3().slice(0, 8)}`;
     const paths = [];
     for (let i2 = 0; i2 < result.images.length; i2++) {
       const outputPath = result.images.length === 1 ? args.output : args.output?.replace(/\.(\w+)$/, `-${i2 + 1}.$1`);
-      const saved = saveImage(result.images[i2], outputPath, args.output_dir);
+      const saved = saveImage(result.images[i2], outputPath, args.output_dir, sessionId);
       paths.push(saved);
     }
-    saveLastOutput(paths);
+    pushHistory({
+      filePaths: paths,
+      prompt: args.prompt,
+      provider: prov.info.name,
+      model: args.model || prov.info.defaultModel,
+      operation: "generate",
+      inputImage: null,
+      timestamp: Date.now()
+    }, { newSession: true, sessionId });
     return { content: buildImageContent(result.images, paths) };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -69686,8 +69898,17 @@ server.tool("edit_image", "Edit an existing image with text instructions", {
     if (!result.success || result.images.length === 0) {
       return { content: [{ type: "text", text: `Error: ${result.error || "Edit failed"}` }] };
     }
-    const saved = saveImage(result.images[0], args.output, args.output_dir);
-    saveLastOutput([saved]);
+    const sessionId = `s-${randomUUID3().slice(0, 8)}`;
+    const saved = saveImage(result.images[0], args.output, args.output_dir, sessionId);
+    pushHistory({
+      filePaths: [saved],
+      prompt: args.prompt,
+      provider: prov.info.name,
+      model: args.model || prov.info.defaultModel,
+      operation: "edit",
+      inputImage: args.input,
+      timestamp: Date.now()
+    }, { newSession: true, sessionId });
     return { content: buildImageContent(result.images, [saved]) };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -69705,8 +69926,8 @@ server.tool("edit_last", "Edit the last generated/edited image with new text ins
   provider: external_exports3.string().optional().describe("Provider name")
 }, async (args) => {
   try {
-    const lastPaths = loadLastOutput();
-    if (!lastPaths || lastPaths.length === 0) {
+    const active = getActiveEntry();
+    if (!active) {
       return {
         content: [{ type: "text", text: "Error: No previous output found. Run generate_image or edit_image first." }]
       };
@@ -69719,7 +69940,7 @@ server.tool("edit_last", "Edit the last generated/edited image with new text ins
     }
     const input = {
       prompt: args.prompt,
-      inputImage: lastPaths[0],
+      inputImage: active.filePaths[0],
       aspectRatio: args.aspect_ratio,
       resolution: args.resolution,
       outputFormat: args.output_format
@@ -69728,12 +69949,133 @@ server.tool("edit_last", "Edit the last generated/edited image with new text ins
     if (!result.success || result.images.length === 0) {
       return { content: [{ type: "text", text: `Error: ${result.error || "Edit failed"}` }] };
     }
-    const saved = saveImage(result.images[0], args.output, args.output_dir);
-    saveLastOutput([saved]);
-    return { content: buildImageContent(result.images, [saved], { inputUsed: lastPaths[0] }) };
+    const sessionId = loadHistory().activeSessionId;
+    const saved = saveImage(result.images[0], args.output, args.output_dir, sessionId || void 0);
+    pushHistory({
+      filePaths: [saved],
+      prompt: args.prompt,
+      provider: prov.info.name,
+      model: args.model || prov.info.defaultModel,
+      operation: "edit",
+      inputImage: active.filePaths[0],
+      timestamp: Date.now()
+    }, { newSession: false });
+    return { content: buildImageContent(result.images, [saved], { inputUsed: active.filePaths[0] }) };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     return { content: [{ type: "text", text: `Error: ${msg}` }] };
+  }
+});
+server.tool("undo_edit", "Undo the last edit, reverting to the previous image state", {}, async () => {
+  try {
+    const result = undoHistory();
+    return {
+      content: [{ type: "text", text: JSON.stringify({
+        success: true,
+        filePath: result.entry.filePaths[0],
+        position: result.position,
+        prompt: result.entry.prompt
+      }) }]
+    };
+  } catch (err) {
+    return { content: [{ type: "text", text: `Error: ${err instanceof Error ? err.message : String(err)}` }] };
+  }
+});
+server.tool("redo_edit", "Redo a previously undone edit", {}, async () => {
+  try {
+    const result = redoHistory();
+    return {
+      content: [{ type: "text", text: JSON.stringify({
+        success: true,
+        filePath: result.entry.filePaths[0],
+        position: result.position,
+        prompt: result.entry.prompt
+      }) }]
+    };
+  } catch (err) {
+    return { content: [{ type: "text", text: `Error: ${err instanceof Error ? err.message : String(err)}` }] };
+  }
+});
+server.tool("edit_history", "Show the full edit history with all sessions", {}, async () => {
+  const history = getHistory();
+  return {
+    content: [{ type: "text", text: JSON.stringify({
+      activeSessionId: history.activeSessionId,
+      sessions: history.sessions.map((s2) => ({
+        id: s2.id,
+        cursor: s2.cursor,
+        entries: s2.entries.map((e2) => ({
+          operation: e2.operation,
+          prompt: e2.prompt,
+          provider: e2.provider,
+          filePaths: e2.filePaths,
+          timestamp: e2.timestamp
+        }))
+      }))
+    }) }]
+  };
+});
+server.tool("switch_session", "Switch to a different editing session to continue work on a previous image chain", { session_id: external_exports3.string().describe("Session ID to switch to (e.g. s-a1b2c3d4)") }, async (args) => {
+  try {
+    switchSession(args.session_id);
+    return { content: [{ type: "text", text: JSON.stringify({ success: true, activeSessionId: args.session_id }) }] };
+  } catch (err) {
+    return { content: [{ type: "text", text: `Error: ${err instanceof Error ? err.message : String(err)}` }] };
+  }
+});
+server.tool("clear_history", "Clear all edit history. Optionally delete image files.", { delete_files: external_exports3.boolean().optional().default(false).describe("Delete image files in session directories") }, async (args) => {
+  try {
+    const result = clearHistory();
+    let filesDeleted = 0;
+    if (args.delete_files) {
+      const { existsSync, rmSync } = await import("node:fs");
+      for (const fp of result.filePaths) {
+        try {
+          if (existsSync(fp)) {
+            rmSync(fp);
+            filesDeleted++;
+          }
+        } catch {
+        }
+      }
+    }
+    return { content: [{ type: "text", text: JSON.stringify({ success: true, cleared: true, filesDeleted }) }] };
+  } catch (err) {
+    return { content: [{ type: "text", text: `Error: ${err instanceof Error ? err.message : String(err)}` }] };
+  }
+});
+server.tool("set_output_dir", "Change the default output directory for generated images", {
+  path: external_exports3.string().describe("New output directory path"),
+  move_files: external_exports3.boolean().optional().default(false).describe("Move existing files to the new directory")
+}, async (args) => {
+  try {
+    const { loadConfig: loadConfig2, saveConfig: saveConfig2 } = await Promise.resolve().then(() => (init_config(), config_exports));
+    const { updateHistoryPaths: updateHistoryPaths2 } = await Promise.resolve().then(() => (init_history(), history_exports));
+    const { resolve: resolve4 } = await import("node:path");
+    const { homedir: homedir4 } = await import("node:os");
+    const config2 = loadConfig2();
+    const oldDir = config2.defaults?.outputDir || resolve4(homedir4(), "Pictures", "imgx");
+    if (!config2.defaults)
+      config2.defaults = {};
+    config2.defaults.outputDir = args.path;
+    saveConfig2(config2);
+    if (args.move_files && oldDir !== args.path) {
+      const { mkdirSync: mkdirSync4, cpSync, rmSync, existsSync } = await import("node:fs");
+      if (existsSync(oldDir)) {
+        mkdirSync4(args.path, { recursive: true });
+        cpSync(oldDir, args.path, { recursive: true });
+        rmSync(oldDir, { recursive: true, force: true });
+        updateHistoryPaths2(oldDir, args.path);
+      }
+    }
+    return { content: [{ type: "text", text: JSON.stringify({
+      success: true,
+      outputDir: args.path,
+      previousDir: oldDir || "(default)",
+      filesMoved: args.move_files
+    }) }] };
+  } catch (err) {
+    return { content: [{ type: "text", text: `Error: ${err instanceof Error ? err.message : String(err)}` }] };
   }
 });
 server.tool("list_providers", "List available image providers and their capabilities", {}, async () => {

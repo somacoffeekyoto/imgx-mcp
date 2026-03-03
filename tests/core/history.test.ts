@@ -15,6 +15,7 @@ import {
   createSession,
   pushHistory,
   getActiveEntry,
+  getActiveSessionOutputDir,
   undoHistory,
   redoHistory,
   switchSession,
@@ -492,6 +493,66 @@ describe("clearHistory", () => {
     expect(result.filePaths).toContain("/tmp/c.png");
     expect(result.filePaths).toContain("/tmp/d.png");
     expect(result.filePaths).toHaveLength(4);
+  });
+});
+
+describe("session outputDir", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = makeTmpDir();
+    process.env.IMGX_TEST_CONFIG_DIR = tmpDir;
+  });
+
+  afterEach(() => {
+    delete process.env.IMGX_TEST_CONFIG_DIR;
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("pushHistory stores outputDir on new session", () => {
+    const entry = makeEntry({ prompt: "gen" });
+    pushHistory(entry, { newSession: true, outputDir: "/custom/output" });
+
+    const history = loadHistory();
+    expect(history.sessions[0].outputDir).toBe("/custom/output");
+  });
+
+  it("pushHistory does not set outputDir when not provided", () => {
+    const entry = makeEntry({ prompt: "gen" });
+    pushHistory(entry, { newSession: true });
+
+    const history = loadHistory();
+    expect(history.sessions[0].outputDir).toBeUndefined();
+  });
+
+  it("getActiveSessionOutputDir returns session outputDir", () => {
+    const entry = makeEntry({ prompt: "gen" });
+    pushHistory(entry, { newSession: true, outputDir: "/my/dir" });
+
+    expect(getActiveSessionOutputDir()).toBe("/my/dir");
+  });
+
+  it("getActiveSessionOutputDir returns undefined when no outputDir set", () => {
+    const entry = makeEntry({ prompt: "gen" });
+    pushHistory(entry, { newSession: true });
+
+    expect(getActiveSessionOutputDir()).toBeUndefined();
+  });
+
+  it("getActiveSessionOutputDir returns undefined when no active session", () => {
+    expect(getActiveSessionOutputDir()).toBeUndefined();
+  });
+
+  it("getActiveSessionOutputDir returns correct dir after switchSession", () => {
+    pushHistory(makeEntry(), { newSession: true, outputDir: "/dir-a" });
+    const id1 = loadHistory().activeSessionId!;
+
+    pushHistory(makeEntry(), { newSession: true, outputDir: "/dir-b" });
+
+    expect(getActiveSessionOutputDir()).toBe("/dir-b");
+
+    switchSession(id1);
+    expect(getActiveSessionOutputDir()).toBe("/dir-a");
   });
 });
 

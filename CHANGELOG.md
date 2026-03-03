@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.1 (2026-03-03)
+
+### Fixed
+
+- **`edit_last` now inherits session `output_dir`** — When `generate_image` specifies `output_dir`, subsequent `edit_last` calls without explicit `output_dir` now output to the same directory. Previously, `edit_last` always fell back to the default (`~/Pictures/imgx`), causing session images to scatter across two locations
+- **`clear_history` now removes empty session directories** — MCP `clear_history` with `delete_files: true` now removes empty `s-XXXXXXXX/` directories after deleting image files, matching CLI `history clear` behavior
+
+### Added
+
+- `outputDir` field on `Session` type — stores the output directory used when creating a session
+- `getActiveSessionOutputDir()` export — returns the active session's output directory for fallback resolution
+- 6 new tests for session `outputDir` storage and `getActiveSessionOutputDir()` behavior (total: 37 tests)
+
 ## 1.0.0 (2026-03-03)
 
 ### Added

@@ -2,7 +2,7 @@
   "name": "imgx-mcp",
   "displayName": "imgx-mcp",
   "description": "AI image generation and editing for Claude Code, Codex CLI, and MCP-compatible AI agents",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "SOMA COFFEE KYOTO"
   },

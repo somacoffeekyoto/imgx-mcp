@@ -19,6 +19,7 @@ export interface Session {
   id: string;
   entries: HistoryEntry[];
   cursor: number;
+  outputDir?: string;
 }
 
 export interface OutputHistory {
@@ -83,13 +84,14 @@ export function createSession(): Session {
 
 export function pushHistory(
   entry: HistoryEntry,
-  opts: { newSession: boolean; sessionId?: string },
+  opts: { newSession: boolean; sessionId?: string; outputDir?: string },
 ): string {
   const history = loadHistory();
 
   if (opts.newSession) {
     const session = createSession();
     if (opts.sessionId) session.id = opts.sessionId;
+    if (opts.outputDir) session.outputDir = opts.outputDir;
     session.entries.push(entry);
     history.sessions.push(session);
     history.activeSessionId = session.id;
@@ -128,6 +130,13 @@ export function getActiveEntry(): HistoryEntry | undefined {
   if (!session || session.entries.length === 0) return undefined;
 
   return session.entries[session.cursor];
+}
+
+export function getActiveSessionOutputDir(): string | undefined {
+  const history = loadHistory();
+  if (!history.activeSessionId) return undefined;
+  const session = history.sessions.find((s) => s.id === history.activeSessionId);
+  return session?.outputDir;
 }
 
 function getActiveSession(): { history: OutputHistory; session: Session } {

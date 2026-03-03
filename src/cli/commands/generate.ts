@@ -54,6 +54,6 @@ export async function runGenerate(
     operation: "generate",
     inputImage: null,
     timestamp: Date.now(),
-  }, { newSession: true, sessionId });
+  }, { newSession: true, sessionId, outputDir: args.outputDir });
   out.success({ filePaths: paths });
 }

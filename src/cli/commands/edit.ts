@@ -72,6 +72,7 @@ export async function runEdit(
   }, {
     newSession: args.isNewSession,
     sessionId: args.isNewSession ? sessionId! : undefined,
+    outputDir: args.isNewSession ? args.outputDir : undefined,
   });
   out.success({ filePaths: paths });
 }

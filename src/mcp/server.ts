@@ -8,6 +8,7 @@ import { saveImage } from "../core/storage.js";
 import {
   pushHistory,
   getActiveEntry,
+  getActiveSessionOutputDir,
   loadHistory,
   undoHistory,
   redoHistory,
@@ -34,7 +35,7 @@ function buildImageContent(
 
 const server = new McpServer({
   name: "imgx",
-  version: "1.0.0",
+  version: "1.0.1",
 });
 
 // プロバイダ初期化
@@ -108,7 +109,7 @@ server.tool(
         operation: "generate",
         inputImage: null,
         timestamp: Date.now(),
-      }, { newSession: true, sessionId });
+      }, { newSession: true, sessionId, outputDir: args.output_dir });
       return { content: buildImageContent(result.images, paths) };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -168,7 +169,7 @@ server.tool(
         operation: "edit",
         inputImage: args.input,
         timestamp: Date.now(),
-      }, { newSession: true, sessionId });
+      }, { newSession: true, sessionId, outputDir: args.output_dir });
       return { content: buildImageContent(result.images, [saved]) };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -225,7 +226,8 @@ server.tool(
       }
 
       const sessionId = loadHistory().activeSessionId;
-      const saved = saveImage(result.images[0], args.output, args.output_dir, sessionId || undefined);
+      const sessionOutputDir = args.output_dir || getActiveSessionOutputDir();
+      const saved = saveImage(result.images[0], args.output, sessionOutputDir, sessionId || undefined);
       pushHistory({
         filePaths: [saved],
         prompt: args.prompt,
@@ -324,10 +326,15 @@ server.tool(
       let filesDeleted = 0;
       if (args.delete_files) {
         const { existsSync, rmSync } = await import("node:fs");
+        const { dirname } = await import("node:path");
+        const dirs = new Set<string>();
         for (const fp of result.filePaths) {
           try {
-            if (existsSync(fp)) { rmSync(fp); filesDeleted++; }
+            if (existsSync(fp)) { rmSync(fp); filesDeleted++; dirs.add(dirname(fp)); }
           } catch { /* skip */ }
+        }
+        for (const dir of dirs) {
+          try { rmSync(dir); } catch { /* non-empty or missing */ }
         }
       }
       return { content: [{ type: "text", text: JSON.stringify({ success: true, cleared: true, filesDeleted }) }] };

@@ -303,7 +303,7 @@ var require_p_retry = __commonJS({
       return error;
     };
     var isNetworkError = (errorMessage) => networkErrorMsgs.includes(errorMessage);
-    var pRetry2 = (input, options) => new Promise((resolve5, reject) => {
+    var pRetry2 = (input, options) => new Promise((resolve6, reject) => {
       options = {
         onFailedAttempt: () => {
         },
@@ -313,7 +313,7 @@ var require_p_retry = __commonJS({
       const operation = retry.operation(options);
       operation.attempt(async (attemptNumber) => {
         try {
-          resolve5(await input(attemptNumber));
+          resolve6(await input(attemptNumber));
         } catch (error) {
           if (!(error instanceof Error)) {
             reject(new TypeError(`Non-error was thrown: "${error}". You should only throw errors.`));
@@ -850,8 +850,8 @@ var require_retry3 = __commonJS({
       }
       const delay = getNextRetryDelay(config);
       err.config.retryConfig.currentRetryAttempt += 1;
-      const backoff = config.retryBackoff ? config.retryBackoff(err, delay) : new Promise((resolve5) => {
-        setTimeout(resolve5, delay);
+      const backoff = config.retryBackoff ? config.retryBackoff(err, delay) : new Promise((resolve6) => {
+        setTimeout(resolve6, delay);
       });
       if (config.onRetryAttempt) {
         await config.onRetryAttempt(err);
@@ -1627,8 +1627,8 @@ var require_helpers = __commonJS({
     function req(url, opts = {}) {
       const href = typeof url === "string" ? url : url.href;
       const req2 = (href.startsWith("https:") ? https2 : http3).request(url, opts);
-      const promise = new Promise((resolve5, reject) => {
-        req2.once("response", resolve5).once("error", reject).end();
+      const promise = new Promise((resolve6, reject) => {
+        req2.once("response", resolve6).once("error", reject).end();
       });
       req2.then = promise.then.bind(promise);
       return req2;
@@ -1805,7 +1805,7 @@ var require_parse_proxy_response = __commonJS({
     var debug_1 = __importDefault(require_src());
     var debug = (0, debug_1.default)("https-proxy-agent:parse-proxy-response");
     function parseProxyResponse(socket) {
-      return new Promise((resolve5, reject) => {
+      return new Promise((resolve6, reject) => {
         let buffersLength = 0;
         const buffers = [];
         function read() {
@@ -1871,7 +1871,7 @@ var require_parse_proxy_response = __commonJS({
           }
           debug("got proxy server response: %o %o", firstLine, headers);
           cleanup();
-          resolve5({
+          resolve6({
             connect: {
               statusCode,
               statusText,
@@ -2113,7 +2113,7 @@ var require_ponyfill_es2018 = __commonJS({
         return new originalPromise(executor);
       }
       function promiseResolvedWith(value) {
-        return newPromise((resolve5) => resolve5(value));
+        return newPromise((resolve6) => resolve6(value));
       }
       function promiseRejectedWith(reason) {
         return originalPromiseReject(reason);
@@ -2283,8 +2283,8 @@ var require_ponyfill_es2018 = __commonJS({
         return new TypeError("Cannot " + name + " a stream using a released reader");
       }
       function defaultReaderClosedPromiseInitialize(reader) {
-        reader._closedPromise = newPromise((resolve5, reject) => {
-          reader._closedPromise_resolve = resolve5;
+        reader._closedPromise = newPromise((resolve6, reject) => {
+          reader._closedPromise_resolve = resolve6;
           reader._closedPromise_reject = reject;
         });
       }
@@ -2458,8 +2458,8 @@ var require_ponyfill_es2018 = __commonJS({
           }
           let resolvePromise;
           let rejectPromise;
-          const promise = newPromise((resolve5, reject) => {
-            resolvePromise = resolve5;
+          const promise = newPromise((resolve6, reject) => {
+            resolvePromise = resolve6;
             rejectPromise = reject;
           });
           const readRequest = {
@@ -2564,8 +2564,8 @@ var require_ponyfill_es2018 = __commonJS({
           const reader = this._reader;
           let resolvePromise;
           let rejectPromise;
-          const promise = newPromise((resolve5, reject) => {
-            resolvePromise = resolve5;
+          const promise = newPromise((resolve6, reject) => {
+            resolvePromise = resolve6;
             rejectPromise = reject;
           });
           const readRequest = {
@@ -3584,8 +3584,8 @@ var require_ponyfill_es2018 = __commonJS({
           }
           let resolvePromise;
           let rejectPromise;
-          const promise = newPromise((resolve5, reject) => {
-            resolvePromise = resolve5;
+          const promise = newPromise((resolve6, reject) => {
+            resolvePromise = resolve6;
             rejectPromise = reject;
           });
           const readIntoRequest = {
@@ -3897,10 +3897,10 @@ var require_ponyfill_es2018 = __commonJS({
           wasAlreadyErroring = true;
           reason = void 0;
         }
-        const promise = newPromise((resolve5, reject) => {
+        const promise = newPromise((resolve6, reject) => {
           stream._pendingAbortRequest = {
             _promise: void 0,
-            _resolve: resolve5,
+            _resolve: resolve6,
             _reject: reject,
             _reason: reason,
             _wasAlreadyErroring: wasAlreadyErroring
@@ -3917,9 +3917,9 @@ var require_ponyfill_es2018 = __commonJS({
         if (state === "closed" || state === "errored") {
           return promiseRejectedWith(new TypeError(`The stream (in ${state} state) is not in the writable state and cannot be closed`));
         }
-        const promise = newPromise((resolve5, reject) => {
+        const promise = newPromise((resolve6, reject) => {
           const closeRequest = {
-            _resolve: resolve5,
+            _resolve: resolve6,
             _reject: reject
           };
           stream._closeRequest = closeRequest;
@@ -3932,9 +3932,9 @@ var require_ponyfill_es2018 = __commonJS({
         return promise;
       }
       function WritableStreamAddWriteRequest(stream) {
-        const promise = newPromise((resolve5, reject) => {
+        const promise = newPromise((resolve6, reject) => {
           const writeRequest = {
-            _resolve: resolve5,
+            _resolve: resolve6,
             _reject: reject
           };
           stream._writeRequests.push(writeRequest);
@@ -4550,8 +4550,8 @@ var require_ponyfill_es2018 = __commonJS({
         return new TypeError("Cannot " + name + " a stream using a released writer");
       }
       function defaultWriterClosedPromiseInitialize(writer) {
-        writer._closedPromise = newPromise((resolve5, reject) => {
-          writer._closedPromise_resolve = resolve5;
+        writer._closedPromise = newPromise((resolve6, reject) => {
+          writer._closedPromise_resolve = resolve6;
           writer._closedPromise_reject = reject;
           writer._closedPromiseState = "pending";
         });
@@ -4587,8 +4587,8 @@ var require_ponyfill_es2018 = __commonJS({
         writer._closedPromiseState = "resolved";
       }
       function defaultWriterReadyPromiseInitialize(writer) {
-        writer._readyPromise = newPromise((resolve5, reject) => {
-          writer._readyPromise_resolve = resolve5;
+        writer._readyPromise = newPromise((resolve6, reject) => {
+          writer._readyPromise_resolve = resolve6;
           writer._readyPromise_reject = reject;
         });
         writer._readyPromiseState = "pending";
@@ -4675,7 +4675,7 @@ var require_ponyfill_es2018 = __commonJS({
         source._disturbed = true;
         let shuttingDown = false;
         let currentWrite = promiseResolvedWith(void 0);
-        return newPromise((resolve5, reject) => {
+        return newPromise((resolve6, reject) => {
           let abortAlgorithm;
           if (signal !== void 0) {
             abortAlgorithm = () => {
@@ -4820,7 +4820,7 @@ var require_ponyfill_es2018 = __commonJS({
             if (isError) {
               reject(error);
             } else {
-              resolve5(void 0);
+              resolve6(void 0);
             }
             return null;
           }
@@ -5101,8 +5101,8 @@ var require_ponyfill_es2018 = __commonJS({
         let branch1;
         let branch2;
         let resolveCancelPromise;
-        const cancelPromise = newPromise((resolve5) => {
-          resolveCancelPromise = resolve5;
+        const cancelPromise = newPromise((resolve6) => {
+          resolveCancelPromise = resolve6;
         });
         function pullAlgorithm() {
           if (reading) {
@@ -5193,8 +5193,8 @@ var require_ponyfill_es2018 = __commonJS({
         let branch1;
         let branch2;
         let resolveCancelPromise;
-        const cancelPromise = newPromise((resolve5) => {
-          resolveCancelPromise = resolve5;
+        const cancelPromise = newPromise((resolve6) => {
+          resolveCancelPromise = resolve6;
         });
         function forwardReaderError(thisReader) {
           uponRejection(thisReader._closedPromise, (r2) => {
@@ -5974,8 +5974,8 @@ var require_ponyfill_es2018 = __commonJS({
           const writableHighWaterMark = ExtractHighWaterMark(writableStrategy, 1);
           const writableSizeAlgorithm = ExtractSizeAlgorithm(writableStrategy);
           let startPromise_resolve;
-          const startPromise = newPromise((resolve5) => {
-            startPromise_resolve = resolve5;
+          const startPromise = newPromise((resolve6) => {
+            startPromise_resolve = resolve6;
           });
           InitializeTransformStream(this, startPromise, writableHighWaterMark, writableSizeAlgorithm, readableHighWaterMark, readableSizeAlgorithm);
           SetUpTransformStreamDefaultControllerFromTransformer(this, transformer);
@@ -6068,8 +6068,8 @@ var require_ponyfill_es2018 = __commonJS({
         if (stream._backpressureChangePromise !== void 0) {
           stream._backpressureChangePromise_resolve();
         }
-        stream._backpressureChangePromise = newPromise((resolve5) => {
-          stream._backpressureChangePromise_resolve = resolve5;
+        stream._backpressureChangePromise = newPromise((resolve6) => {
+          stream._backpressureChangePromise_resolve = resolve6;
         });
         stream._backpressure = backpressure;
       }
@@ -6237,8 +6237,8 @@ var require_ponyfill_es2018 = __commonJS({
           return controller._finishPromise;
         }
         const readable = stream._readable;
-        controller._finishPromise = newPromise((resolve5, reject) => {
-          controller._finishPromise_resolve = resolve5;
+        controller._finishPromise = newPromise((resolve6, reject) => {
+          controller._finishPromise_resolve = resolve6;
           controller._finishPromise_reject = reject;
         });
         const cancelPromise = controller._cancelAlgorithm(reason);
@@ -6264,8 +6264,8 @@ var require_ponyfill_es2018 = __commonJS({
           return controller._finishPromise;
         }
         const readable = stream._readable;
-        controller._finishPromise = newPromise((resolve5, reject) => {
-          controller._finishPromise_resolve = resolve5;
+        controller._finishPromise = newPromise((resolve6, reject) => {
+          controller._finishPromise_resolve = resolve6;
           controller._finishPromise_reject = reject;
         });
         const flushPromise = controller._flushAlgorithm();
@@ -6295,8 +6295,8 @@ var require_ponyfill_es2018 = __commonJS({
           return controller._finishPromise;
         }
         const writable = stream._writable;
-        controller._finishPromise = newPromise((resolve5, reject) => {
-          controller._finishPromise_resolve = resolve5;
+        controller._finishPromise = newPromise((resolve6, reject) => {
+          controller._finishPromise_resolve = resolve6;
           controller._finishPromise_reject = reject;
         });
         const cancelPromise = controller._cancelAlgorithm(reason);
@@ -8247,7 +8247,7 @@ import zlib from "node:zlib";
 import Stream2, { PassThrough as PassThrough2, pipeline as pump } from "node:stream";
 import { Buffer as Buffer3 } from "node:buffer";
 async function fetch2(url, options_) {
-  return new Promise((resolve5, reject) => {
+  return new Promise((resolve6, reject) => {
     const request = new Request(url, options_);
     const { parsedURL, options } = getNodeRequestOptions(request);
     if (!supportedSchemas.has(parsedURL.protocol)) {
@@ -8256,7 +8256,7 @@ async function fetch2(url, options_) {
     if (parsedURL.protocol === "data:") {
       const data = dist_default(request.url);
       const response2 = new Response2(data, { headers: { "Content-Type": data.typeFull } });
-      resolve5(response2);
+      resolve6(response2);
       return;
     }
     const send = (parsedURL.protocol === "https:" ? https : http2).request;
@@ -8378,7 +8378,7 @@ async function fetch2(url, options_) {
             if (responseReferrerPolicy) {
               requestOptions.referrerPolicy = responseReferrerPolicy;
             }
-            resolve5(fetch2(new Request(locationURL, requestOptions)));
+            resolve6(fetch2(new Request(locationURL, requestOptions)));
             finalize();
             return;
           }
@@ -8411,7 +8411,7 @@ async function fetch2(url, options_) {
       const codings = headers.get("Content-Encoding");
       if (!request.compress || request.method === "HEAD" || codings === null || response_.statusCode === 204 || response_.statusCode === 304) {
         response = new Response2(body, responseOptions);
-        resolve5(response);
+        resolve6(response);
         return;
       }
       const zlibOptions = {
@@ -8425,7 +8425,7 @@ async function fetch2(url, options_) {
           }
         });
         response = new Response2(body, responseOptions);
-        resolve5(response);
+        resolve6(response);
         return;
       }
       if (codings === "deflate" || codings === "x-deflate") {
@@ -8449,12 +8449,12 @@ async function fetch2(url, options_) {
             });
           }
           response = new Response2(body, responseOptions);
-          resolve5(response);
+          resolve6(response);
         });
         raw.once("end", () => {
           if (!response) {
             response = new Response2(body, responseOptions);
-            resolve5(response);
+            resolve6(response);
           }
         });
         return;
@@ -8466,11 +8466,11 @@ async function fetch2(url, options_) {
           }
         });
         response = new Response2(body, responseOptions);
-        resolve5(response);
+        resolve6(response);
         return;
       }
       response = new Response2(body, responseOptions);
-      resolve5(response);
+      resolve6(response);
     });
     writeToStream(request_, request).catch(reject);
   });
@@ -8542,7 +8542,7 @@ var require_gaxios = __commonJS({
     var retry_js_1 = require_retry3();
     var stream_1 = __require("stream");
     var interceptor_js_1 = require_interceptor();
-    var randomUUID2 = async () => globalThis.crypto?.randomUUID() || (await import("crypto")).randomUUID();
+    var randomUUID5 = async () => globalThis.crypto?.randomUUID() || (await import("crypto")).randomUUID();
     var HTTP_STATUS_NO_CONTENT = 204;
     var Gaxios = class {
       agentCache = /* @__PURE__ */ new Map();
@@ -8815,7 +8815,7 @@ var require_gaxios = __commonJS({
          */
         ["Blob", "File", "FormData"].includes(opts.data?.constructor?.name || "");
         if (opts.multipart?.length) {
-          const boundary = await randomUUID2();
+          const boundary = await randomUUID5();
           preparedHeaders.set("content-type", `multipart/related; boundary=${boundary}`);
           opts.body = stream_1.Readable.from(this.getMultipartRequest(opts.multipart, boundary));
         } else if (shouldDirectlyPassData) {
@@ -14540,7 +14540,7 @@ var require_jwtaccess = __commonJS({
         }
       }
       fromStreamAsync(inputStream) {
-        return new Promise((resolve5, reject) => {
+        return new Promise((resolve6, reject) => {
           if (!inputStream) {
             reject(new Error("Must pass in a stream containing the service account auth settings."));
           }
@@ -14549,7 +14549,7 @@ var require_jwtaccess = __commonJS({
             try {
               const data = JSON.parse(s2);
               this.fromJSON(data);
-              resolve5();
+              resolve6();
             } catch (err) {
               reject(err);
             }
@@ -14788,7 +14788,7 @@ var require_jwtclient = __commonJS({
         }
       }
       fromStreamAsync(inputStream) {
-        return new Promise((resolve5, reject) => {
+        return new Promise((resolve6, reject) => {
           if (!inputStream) {
             throw new Error("Must pass in a stream containing the service account auth settings.");
           }
@@ -14797,7 +14797,7 @@ var require_jwtclient = __commonJS({
             try {
               const data = JSON.parse(s2);
               this.fromJSON(data);
-              resolve5();
+              resolve6();
             } catch (e2) {
               reject(e2);
             }
@@ -14930,7 +14930,7 @@ var require_refreshclient = __commonJS({
         }
       }
       async fromStreamAsync(inputStream) {
-        return new Promise((resolve5, reject) => {
+        return new Promise((resolve6, reject) => {
           if (!inputStream) {
             return reject(new Error("Must pass in a stream containing the user refresh token."));
           }
@@ -14939,7 +14939,7 @@ var require_refreshclient = __commonJS({
             try {
               const data = JSON.parse(s2);
               this.fromJSON(data);
-              return resolve5();
+              return resolve6();
             } catch (err) {
               return reject(err);
             }
@@ -16772,7 +16772,7 @@ var require_pluggable_auth_handler = __commonJS({
        * @return A promise that resolves with the executable response.
        */
       retrieveResponseFromExecutable(envMap) {
-        return new Promise((resolve5, reject) => {
+        return new Promise((resolve6, reject) => {
           const child = childProcess.spawn(this.commandComponents[0], this.commandComponents.slice(1), {
             env: { ...process.env, ...Object.fromEntries(envMap) }
           });
@@ -16794,7 +16794,7 @@ var require_pluggable_auth_handler = __commonJS({
               try {
                 const responseJson = JSON.parse(output);
                 const response = new executable_response_1.ExecutableResponse(responseJson);
-                return resolve5(response);
+                return resolve6(response);
               } catch (error) {
                 if (error instanceof executable_response_1.ExecutableResponseError) {
                   return reject(error);
@@ -17697,7 +17697,7 @@ var require_googleauth = __commonJS({
         }
       }
       fromStreamAsync(inputStream, options) {
-        return new Promise((resolve5, reject) => {
+        return new Promise((resolve6, reject) => {
           if (!inputStream) {
             throw new Error("Must pass in a stream containing the Google auth settings.");
           }
@@ -17707,7 +17707,7 @@ var require_googleauth = __commonJS({
               try {
                 const data = JSON.parse(chunks.join(""));
                 const r2 = this._cacheClientFromJSON(data, options);
-                return resolve5(r2);
+                return resolve6(r2);
               } catch (err) {
                 if (!this.keyFilename)
                   throw err;
@@ -17717,7 +17717,7 @@ var require_googleauth = __commonJS({
                 });
                 this.cachedCredential = client;
                 this.setGapicJWTValues(client);
-                return resolve5(client);
+                return resolve6(client);
               }
             } catch (err) {
               return reject(err);
@@ -17753,17 +17753,17 @@ var require_googleauth = __commonJS({
        * Run the Google Cloud SDK command that prints the default project ID
        */
       async getDefaultServiceProjectId() {
-        return new Promise((resolve5) => {
+        return new Promise((resolve6) => {
           (0, child_process_1.exec)("gcloud config config-helper --format json", (err, stdout) => {
             if (!err && stdout) {
               try {
                 const projectId = JSON.parse(stdout).configuration.properties.core.project;
-                resolve5(projectId);
+                resolve6(projectId);
                 return;
               } catch (e2) {
               }
             }
-            resolve5(null);
+            resolve6(null);
           });
         });
       }
@@ -22111,21 +22111,6 @@ function resolveDefault(key) {
     return project.defaults[key];
   const config = loadConfig();
   return config.defaults?.[key];
-}
-function saveLastOutput(filePaths) {
-  const dir = configDir();
-  mkdirSync(dir, { recursive: true });
-  const path2 = join(dir, "last-output.json");
-  writeFileSync(path2, JSON.stringify({ filePaths, timestamp: Date.now() }) + "\n", "utf-8");
-}
-function loadLastOutput() {
-  try {
-    const raw = readFileSync(join(configDir(), "last-output.json"), "utf-8");
-    const data = JSON.parse(raw);
-    return data.filePaths;
-  } catch {
-    return void 0;
-  }
 }
 function getConfigPath() {
   return configPath();
@@ -26896,14 +26881,14 @@ function __asyncValues(o) {
   }, i2);
   function verb(n) {
     i2[n] = o[n] && function(v) {
-      return new Promise(function(resolve5, reject) {
-        v = o[n](v), settle(resolve5, reject, v.done, v.value);
+      return new Promise(function(resolve6, reject) {
+        v = o[n](v), settle(resolve6, reject, v.done, v.value);
       });
     };
   }
-  function settle(resolve5, reject, d, v) {
+  function settle(resolve6, reject, d, v) {
     Promise.resolve(v).then(function(v2) {
-      resolve5({ value: v2, done: d });
+      resolve6({ value: v2, done: d });
     }, reject);
   }
 }
@@ -32874,8 +32859,8 @@ var LiveMusic = class {
     const url = `${websocketBaseUrl}/ws/google.ai.generativelanguage.${apiVersion}.GenerativeService.BidiGenerateMusic?key=${apiKey}`;
     let onopenResolve = () => {
     };
-    const onopenPromise = new Promise((resolve5) => {
-      onopenResolve = resolve5;
+    const onopenPromise = new Promise((resolve6) => {
+      onopenResolve = resolve6;
     });
     const callbacks = params.callbacks;
     const onopenAwaitedCallback = function() {
@@ -33115,8 +33100,8 @@ var Live = class {
     }
     let onopenResolve = () => {
     };
-    const onopenPromise = new Promise((resolve5) => {
-      onopenResolve = resolve5;
+    const onopenPromise = new Promise((resolve6) => {
+      onopenResolve = resolve6;
     });
     const callbacks = params.callbacks;
     const onopenAwaitedCallback = function() {
@@ -36058,7 +36043,7 @@ var safeJSON = (text) => {
     return void 0;
   }
 };
-var sleep$1 = (ms) => new Promise((resolve5) => setTimeout(resolve5, ms));
+var sleep$1 = (ms) => new Promise((resolve6) => setTimeout(resolve6, ms));
 var VERSION = "0.0.1";
 function getDetectedPlatform() {
   if (typeof Deno !== "undefined" && Deno.build != null) {
@@ -36161,24 +36146,24 @@ var normalizeArch = (arch) => {
     return `other:${arch}`;
   return "unknown";
 };
-var normalizePlatform = (platform2) => {
-  platform2 = platform2.toLowerCase();
-  if (platform2.includes("ios"))
+var normalizePlatform = (platform3) => {
+  platform3 = platform3.toLowerCase();
+  if (platform3.includes("ios"))
     return "iOS";
-  if (platform2 === "android")
+  if (platform3 === "android")
     return "Android";
-  if (platform2 === "darwin")
+  if (platform3 === "darwin")
     return "MacOS";
-  if (platform2 === "win32")
+  if (platform3 === "win32")
     return "Windows";
-  if (platform2 === "freebsd")
+  if (platform3 === "freebsd")
     return "FreeBSD";
-  if (platform2 === "openbsd")
+  if (platform3 === "openbsd")
     return "OpenBSD";
-  if (platform2 === "linux")
+  if (platform3 === "linux")
     return "Linux";
-  if (platform2)
-    return `Other:${platform2}`;
+  if (platform3)
+    return `Other:${platform3}`;
   return "Unknown";
 };
 var _platformHeaders;
@@ -36978,8 +36963,8 @@ async function defaultParseResponse(client, props) {
 }
 var APIPromise = class _APIPromise extends Promise {
   constructor(client, responsePromise, parseResponse = defaultParseResponse) {
-    super((resolve5) => {
-      resolve5(null);
+    super((resolve6) => {
+      resolve6(null);
     });
     this.responsePromise = responsePromise;
     this.parseResponse = parseResponse;
@@ -39233,9 +39218,16 @@ function fallbackOutputDir(outputDir) {
     return configured;
   return join2(homedir2(), "Pictures", "imgx");
 }
-function saveImage(image, outputPath, outputDir) {
+function saveImage(image, outputPath, outputDir, sessionId) {
   const ext = MIME_TO_EXT[image.mimeType] || ".png";
-  const filePath = outputPath ? resolve2(outputPath) : resolve2(fallbackOutputDir(outputDir), `imgx-${randomUUID().slice(0, 8)}${ext}`);
+  let filePath;
+  if (outputPath) {
+    filePath = resolve2(outputPath);
+  } else {
+    const baseDir = fallbackOutputDir(outputDir);
+    const targetDir = sessionId ? join2(baseDir, sessionId) : baseDir;
+    filePath = resolve2(targetDir, `imgx-${randomUUID().slice(0, 8)}${ext}`);
+  }
   mkdirSync2(dirname(filePath), { recursive: true });
   writeFileSync2(filePath, image.data);
   return filePath;
@@ -39558,8 +39550,161 @@ function initOpenAI() {
   registerProvider(new OpenAIProvider(apiKey));
 }
 
+// build/core/history.js
+import { readFileSync as readFileSync4, writeFileSync as writeFileSync3, mkdirSync as mkdirSync3 } from "node:fs";
+import { join as join3 } from "node:path";
+import { homedir as homedir3, platform as platform2 } from "node:os";
+import { randomUUID as randomUUID2 } from "node:crypto";
+var HISTORY_FILE = "output-history.json";
+function historyDir() {
+  if (process.env.IMGX_TEST_CONFIG_DIR)
+    return process.env.IMGX_TEST_CONFIG_DIR;
+  if (platform2() === "win32") {
+    return join3(process.env.APPDATA || join3(homedir3(), "AppData", "Roaming"), "imgx");
+  }
+  return join3(process.env.XDG_CONFIG_HOME || join3(homedir3(), ".config"), "imgx");
+}
+function historyPath() {
+  return join3(historyDir(), HISTORY_FILE);
+}
+function emptyHistory() {
+  return {
+    sessions: [],
+    activeSessionId: null,
+    maxEntriesPerSession: 10
+  };
+}
+function loadHistory() {
+  try {
+    const raw = readFileSync4(historyPath(), "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return emptyHistory();
+  }
+}
+function saveHistory(history) {
+  const dir = historyDir();
+  mkdirSync3(dir, { recursive: true });
+  writeFileSync3(historyPath(), JSON.stringify(history, null, 2) + "\n", "utf-8");
+}
+function createSession() {
+  return {
+    id: `s-${randomUUID2().slice(0, 8)}`,
+    entries: [],
+    cursor: 0
+  };
+}
+function pushHistory(entry, opts) {
+  const history = loadHistory();
+  if (opts.newSession) {
+    const session2 = createSession();
+    if (opts.sessionId)
+      session2.id = opts.sessionId;
+    session2.entries.push(entry);
+    history.sessions.push(session2);
+    history.activeSessionId = session2.id;
+    saveHistory(history);
+    return session2.id;
+  }
+  const session = history.sessions.find((s2) => s2.id === history.activeSessionId);
+  if (!session)
+    throw new Error("No active session. Run generate first.");
+  if (session.cursor > 0) {
+    session.entries.splice(0, session.cursor);
+    session.cursor = 0;
+  }
+  session.entries.unshift(entry);
+  while (session.entries.length > history.maxEntriesPerSession) {
+    session.entries.splice(session.entries.length - 2, 1);
+  }
+  saveHistory(history);
+  return session.id;
+}
+function getActiveEntry() {
+  const history = loadHistory();
+  if (!history.activeSessionId)
+    return void 0;
+  const session = history.sessions.find((s2) => s2.id === history.activeSessionId);
+  if (!session || session.entries.length === 0)
+    return void 0;
+  return session.entries[session.cursor];
+}
+function getActiveSession() {
+  const history = loadHistory();
+  if (!history.activeSessionId) {
+    throw new Error("No active session. Run generate first.");
+  }
+  const session = history.sessions.find((s2) => s2.id === history.activeSessionId);
+  if (!session) {
+    throw new Error("No active session. Run generate first.");
+  }
+  return { history, session };
+}
+function undoHistory() {
+  const { history, session } = getActiveSession();
+  const maxCursor = session.entries.length - 1;
+  if (session.cursor >= maxCursor) {
+    throw new Error("Already at the oldest entry in this session");
+  }
+  session.cursor += 1;
+  saveHistory(history);
+  return {
+    entry: session.entries[session.cursor],
+    position: `${session.cursor + 1}/${session.entries.length}`
+  };
+}
+function redoHistory() {
+  const { history, session } = getActiveSession();
+  if (session.cursor <= 0) {
+    throw new Error("Already at the latest entry");
+  }
+  session.cursor -= 1;
+  saveHistory(history);
+  return {
+    entry: session.entries[session.cursor],
+    position: `${session.cursor + 1}/${session.entries.length}`
+  };
+}
+function switchSession(sessionId) {
+  const history = loadHistory();
+  const session = history.sessions.find((s2) => s2.id === sessionId);
+  if (!session) {
+    throw new Error(`Session not found: ${sessionId}`);
+  }
+  history.activeSessionId = sessionId;
+  saveHistory(history);
+}
+function getHistory() {
+  return loadHistory();
+}
+function clearHistory() {
+  const history = loadHistory();
+  const filePaths = [];
+  for (const session of history.sessions) {
+    for (const entry of session.entries) {
+      filePaths.push(...entry.filePaths);
+    }
+  }
+  history.sessions = [];
+  history.activeSessionId = null;
+  saveHistory(history);
+  return { filePaths };
+}
+function updateHistoryPaths(oldBase, newBase) {
+  const history = loadHistory();
+  for (const session of history.sessions) {
+    for (const entry of session.entries) {
+      entry.filePaths = entry.filePaths.map((p) => p.startsWith(oldBase) ? newBase + p.slice(oldBase.length) : p);
+      if (entry.inputImage && entry.inputImage.startsWith(oldBase)) {
+        entry.inputImage = newBase + entry.inputImage.slice(oldBase.length);
+      }
+    }
+  }
+  saveHistory(history);
+}
+
 // build/cli/commands/init.js
-import { existsSync, writeFileSync as writeFileSync3 } from "node:fs";
+import { existsSync, writeFileSync as writeFileSync4 } from "node:fs";
 import { resolve as resolve4 } from "node:path";
 
 // build/cli/output.js
@@ -39585,11 +39730,12 @@ function runInit() {
   if (existsSync(filePath)) {
     fail(".imgxrc already exists in current directory");
   }
-  writeFileSync3(filePath, JSON.stringify(TEMPLATE, null, 2) + "\n", "utf-8");
+  writeFileSync4(filePath, JSON.stringify(TEMPLATE, null, 2) + "\n", "utf-8");
   success({ created: filePath });
 }
 
 // build/cli/commands/generate.js
+import { randomUUID as randomUUID3 } from "node:crypto";
 async function runGenerate(provider, args) {
   const result = await provider.generate({
     prompt: args.prompt,
@@ -39601,17 +39747,27 @@ async function runGenerate(provider, args) {
   if (!result.success || result.images.length === 0) {
     fail(result.error || "Generation failed");
   }
+  const sessionId = `s-${randomUUID3().slice(0, 8)}`;
   const paths = [];
   for (let i2 = 0; i2 < result.images.length; i2++) {
     const outputPath = result.images.length === 1 ? args.output : args.output?.replace(/\.(\w+)$/, `-${i2 + 1}.$1`);
-    const saved = saveImage(result.images[i2], outputPath, args.outputDir);
+    const saved = saveImage(result.images[i2], outputPath, args.outputDir, sessionId);
     paths.push(saved);
   }
-  saveLastOutput(paths);
+  pushHistory({
+    filePaths: paths,
+    prompt: args.prompt,
+    provider: provider.info.name,
+    model: args.model || provider.info.defaultModel,
+    operation: "generate",
+    inputImage: null,
+    timestamp: Date.now()
+  }, { newSession: true, sessionId });
   success({ filePaths: paths });
 }
 
 // build/cli/commands/edit.js
+import { randomUUID as randomUUID4 } from "node:crypto";
 async function runEdit(provider, args) {
   if (!provider.info.capabilities.has(Capability.IMAGE_EDITING)) {
     const supported = findProviderWith(Capability.IMAGE_EDITING).map((p) => p.info.name).join(", ");
@@ -39630,16 +39786,32 @@ async function runEdit(provider, args) {
   if (!result.success || result.images.length === 0) {
     fail(result.error || "Edit failed");
   }
+  const sessionId = args.isNewSession ? `s-${randomUUID4().slice(0, 8)}` : loadHistory().activeSessionId;
   const paths = [];
   for (const image of result.images) {
-    const saved = saveImage(image, args.output, args.outputDir);
+    const saved = saveImage(image, args.output, args.outputDir, sessionId || void 0);
     paths.push(saved);
   }
-  saveLastOutput(paths);
+  pushHistory({
+    filePaths: paths,
+    prompt: args.prompt,
+    provider: provider.info.name,
+    model: args.model || provider.info.defaultModel,
+    operation: "edit",
+    inputImage: args.inputImage,
+    timestamp: Date.now()
+  }, {
+    newSession: args.isNewSession,
+    sessionId: args.isNewSession ? sessionId : void 0
+  });
   success({ filePaths: paths });
 }
 
 // build/cli/commands/config.js
+import { createInterface } from "node:readline";
+import { existsSync as existsSync2, readdirSync, cpSync, rmSync, mkdirSync as mkdirSync4 } from "node:fs";
+import { resolve as resolve5 } from "node:path";
+import { homedir as homedir4 } from "node:os";
 function extractProvider(args) {
   const rest = [];
   let provider = "gemini";
@@ -39661,10 +39833,17 @@ function runConfig(args) {
   }
   if (sub === "set") {
     const { provider, rest } = extractProvider(args.slice(1));
-    const key = rest[0];
-    const value = rest[1];
+    const hasYes = rest.includes("--yes");
+    const hasNoMove = rest.includes("--no-move");
+    const filtered = rest.filter((a) => a !== "--yes" && a !== "--no-move");
+    const key = filtered[0];
+    const value = filtered[1];
     if (!key || !value) {
       fail("Usage: imgx config set <key> <value> [--provider <name>]\n  Keys: api-key, provider, model, output-dir, aspect-ratio, resolution");
+    }
+    if (key === "output-dir") {
+      setOutputDir(value, hasYes, hasNoMove);
+      return;
     }
     setKey(key, value, provider);
     return;
@@ -39731,6 +39910,63 @@ function setKey(key, value, provider) {
   saveConfig(config);
   success({ key, status: "saved" });
 }
+function setOutputDir(newDir, skipConfirm, noMove) {
+  const config = loadConfig();
+  const oldDir = config.defaults?.outputDir || resolve5(homedir4(), "Pictures", "imgx");
+  const resolvedNew = resolve5(newDir);
+  if (!config.defaults)
+    config.defaults = {};
+  config.defaults.outputDir = resolvedNew;
+  saveConfig(config);
+  if (noMove || oldDir === resolvedNew) {
+    success({ key: "output-dir", status: "saved", outputDir: resolvedNew });
+    return;
+  }
+  if (!existsSync2(oldDir)) {
+    success({ key: "output-dir", status: "saved", outputDir: resolvedNew });
+    return;
+  }
+  let fileCount = 0;
+  let sessionCount = 0;
+  try {
+    const items = readdirSync(oldDir);
+    for (const item of items) {
+      if (item.startsWith("s-"))
+        sessionCount++;
+    }
+    fileCount = items.length;
+  } catch {
+    success({ key: "output-dir", status: "saved", outputDir: resolvedNew });
+    return;
+  }
+  if (fileCount === 0) {
+    success({ key: "output-dir", status: "saved", outputDir: resolvedNew });
+    return;
+  }
+  if (skipConfirm) {
+    moveFiles(oldDir, resolvedNew);
+    success({ key: "output-dir", status: "saved", outputDir: resolvedNew, filesMoved: true });
+    return;
+  }
+  const rl = createInterface({ input: process.stdin, output: process.stderr });
+  process.stderr.write(`Current output directory: ${oldDir} (${sessionCount} sessions)
+`);
+  rl.question(`Move existing files to ${resolvedNew}? [y/N]: `, (answer) => {
+    rl.close();
+    if (answer.toLowerCase() === "y") {
+      moveFiles(oldDir, resolvedNew);
+      success({ key: "output-dir", status: "saved", outputDir: resolvedNew, filesMoved: true });
+    } else {
+      success({ key: "output-dir", status: "saved", outputDir: resolvedNew, filesMoved: false });
+    }
+  });
+}
+function moveFiles(oldDir, newDir) {
+  mkdirSync4(newDir, { recursive: true });
+  cpSync(oldDir, newDir, { recursive: true });
+  rmSync(oldDir, { recursive: true, force: true });
+  updateHistoryPaths(oldDir, newDir);
+}
 function getKey(key, provider) {
   const config = loadConfig();
   switch (key) {
@@ -39775,13 +40011,139 @@ function showAll() {
   });
 }
 
+// build/cli/commands/history.js
+import { createInterface as createInterface2 } from "node:readline";
+import { rmSync as rmSync2, existsSync as existsSync3 } from "node:fs";
+import { dirname as dirname2 } from "node:path";
+function runHistory(args) {
+  const sub = args[0];
+  if (!sub) {
+    showHistory();
+    return;
+  }
+  if (sub === "switch") {
+    const sessionId = args[1];
+    if (!sessionId)
+      fail("Usage: imgx history switch <session-id>");
+    try {
+      switchSession(sessionId);
+      success({ activeSessionId: sessionId });
+    } catch (err) {
+      fail(err instanceof Error ? err.message : String(err));
+    }
+    return;
+  }
+  if (sub === "clear") {
+    const hasYes = args.includes("--yes");
+    const hasKeepFiles = args.includes("--keep-files");
+    runClear(hasYes, hasKeepFiles);
+    return;
+  }
+  fail(`Unknown history subcommand: ${sub}. Use: switch, clear`);
+}
+function showHistory() {
+  const history = getHistory();
+  if (history.sessions.length === 0) {
+    return success({ message: "No history", sessions: [] });
+  }
+  return success({
+    activeSessionId: history.activeSessionId,
+    sessions: history.sessions.map((s2) => ({
+      id: s2.id,
+      active: s2.id === history.activeSessionId,
+      cursor: s2.cursor,
+      entries: s2.entries.map((e2, i2) => ({
+        index: i2 + 1,
+        current: i2 === s2.cursor && s2.id === history.activeSessionId,
+        operation: e2.operation,
+        prompt: e2.prompt,
+        provider: e2.provider,
+        filePaths: e2.filePaths,
+        timestamp: e2.timestamp
+      }))
+    }))
+  });
+}
+function runClear(skipConfirm, keepFiles) {
+  const result = clearHistory();
+  if (keepFiles || result.filePaths.length === 0) {
+    return success({ cleared: true, filesDeleted: 0 });
+  }
+  if (skipConfirm) {
+    const deleted = deleteSessionFiles(result.filePaths);
+    return success({ cleared: true, filesDeleted: deleted });
+  }
+  const rl = createInterface2({ input: process.stdin, output: process.stderr });
+  rl.question(`Delete ${result.filePaths.length} image files? [y/N]: `, (answer) => {
+    rl.close();
+    if (answer.toLowerCase() === "y") {
+      const deleted = deleteSessionFiles(result.filePaths);
+      success({ cleared: true, filesDeleted: deleted });
+    } else {
+      success({ cleared: true, filesDeleted: 0 });
+    }
+  });
+}
+function deleteSessionFiles(filePaths) {
+  let count = 0;
+  const dirs = /* @__PURE__ */ new Set();
+  for (const fp of filePaths) {
+    try {
+      if (existsSync3(fp)) {
+        rmSync2(fp);
+        count++;
+        dirs.add(dirname2(fp));
+      }
+    } catch {
+    }
+  }
+  for (const dir of dirs) {
+    try {
+      rmSync2(dir, { recursive: false });
+    } catch {
+    }
+  }
+  return count;
+}
+
+// build/cli/commands/undo.js
+function runUndo() {
+  try {
+    const result = undoHistory();
+    success({
+      filePath: result.entry.filePaths[0],
+      position: result.position,
+      prompt: result.entry.prompt
+    });
+  } catch (err) {
+    fail(err instanceof Error ? err.message : String(err));
+  }
+}
+
+// build/cli/commands/redo.js
+function runRedo() {
+  try {
+    const result = redoHistory();
+    success({
+      filePath: result.entry.filePaths[0],
+      position: result.position,
+      prompt: result.entry.prompt
+    });
+  } catch (err) {
+    fail(err instanceof Error ? err.message : String(err));
+  }
+}
+
 // build/cli/index.js
-var VERSION2 = "0.9.0";
+var VERSION2 = "1.0.0";
 var HELP = `imgx v${VERSION2} \u2014 AI image generation and editing for MCP-compatible AI agents
 
 Commands:
   generate      Generate image from text prompt
   edit          Edit existing image with text instructions
+  undo          Undo last edit (move to previous state)
+  redo          Redo (move to next state)
+  history       Show edit history
   init          Create .imgxrc project config in current directory
   providers     List available providers
   capabilities  Show capabilities of current provider
@@ -39824,6 +40186,13 @@ Environment variables (override config file):
   IMGX_PROVIDER              Default provider
   IMGX_MODEL                 Default model
   IMGX_OUTPUT_DIR            Default output directory
+
+History:
+  imgx history                       Show all sessions and entries
+  imgx history switch <session-id>   Switch to a different session
+  imgx history clear                 Clear history (with confirmation)
+  imgx history clear --yes           Clear history and delete files
+  imgx history clear --keep-files    Clear history, keep image files
 `;
 function main() {
   initGemini();
@@ -39846,6 +40215,18 @@ function main() {
     runInit();
     return;
   }
+  if (command === "undo") {
+    runUndo();
+    return;
+  }
+  if (command === "redo") {
+    runRedo();
+    return;
+  }
+  if (command === "history") {
+    runHistory(args.slice(1));
+    return;
+  }
   if (command === "providers") {
     const all = listProviders();
     if (all.length === 0) {
@@ -39858,6 +40239,7 @@ function main() {
       capabilities: Array.from(p.info.capabilities)
     }));
     success({ providers: data });
+    return;
   }
   const cmdArgs = args.slice(1);
   const { values } = parseArgs({
@@ -39893,6 +40275,7 @@ function main() {
       aspectRatios: provider.info.aspectRatios,
       resolutions: provider.info.resolutions || []
     });
+    return;
   }
   const prompt = values.prompt;
   if (!prompt) {
@@ -39914,17 +40297,21 @@ function main() {
   }
   if (command === "edit") {
     let inputImage = values.input;
-    if (!inputImage && values.last) {
-      const lastPaths = loadLastOutput();
-      if (!lastPaths || lastPaths.length === 0) {
+    let isNewSession = false;
+    if (inputImage) {
+      isNewSession = true;
+    } else if (values.last) {
+      const active = getActiveEntry();
+      if (!active) {
         fail("No previous output found. Run generate or edit first, then use --last.");
       }
-      inputImage = lastPaths[0];
+      inputImage = active.filePaths[0];
+      isNewSession = false;
     }
     if (!inputImage) {
       fail("--input (-i) or --last (-l) is required for edit command");
     }
-    runEdit(provider, { ...commonArgs, inputImage });
+    runEdit(provider, { ...commonArgs, inputImage, isNewSession });
     return;
   }
   fail(`Unknown command: ${command}. Run "imgx --help" for usage.`);
