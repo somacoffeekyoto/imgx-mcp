@@ -9,6 +9,9 @@ import { Capability } from "../core/types.js";
 import { runGenerate } from "./commands/generate.js";
 import { runEdit } from "./commands/edit.js";
 import { runConfig } from "./commands/config.js";
+import { runHistory } from "./commands/history.js";
+import { runUndo } from "./commands/undo.js";
+import { runRedo } from "./commands/redo.js";
 import * as out from "./output.js";
 
 const VERSION = "0.9.0";
@@ -18,6 +21,9 @@ const HELP = `imgx v${VERSION} — AI image generation and editing for MCP-compa
 Commands:
   generate      Generate image from text prompt
   edit          Edit existing image with text instructions
+  undo          Undo last edit (move to previous state)
+  redo          Redo (move to next state)
+  history       Show edit history
   init          Create .imgxrc project config in current directory
   providers     List available providers
   capabilities  Show capabilities of current provider
@@ -60,6 +66,13 @@ Environment variables (override config file):
   IMGX_PROVIDER              Default provider
   IMGX_MODEL                 Default model
   IMGX_OUTPUT_DIR            Default output directory
+
+History:
+  imgx history                       Show all sessions and entries
+  imgx history switch <session-id>   Switch to a different session
+  imgx history clear                 Clear history (with confirmation)
+  imgx history clear --yes           Clear history and delete files
+  imgx history clear --keep-files    Clear history, keep image files
 `;
 
 function main(): void {
@@ -87,6 +100,21 @@ function main(): void {
 
   if (command === "init") {
     runInit();
+    return;
+  }
+
+  if (command === "undo") {
+    runUndo();
+    return;
+  }
+
+  if (command === "redo") {
+    runRedo();
+    return;
+  }
+
+  if (command === "history") {
+    runHistory(args.slice(1));
     return;
   }
 
