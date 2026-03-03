@@ -39,13 +39,19 @@ function fallbackOutputDir(outputDir?: string): string {
 export function saveImage(
   image: GeneratedImage,
   outputPath?: string,
-  outputDir?: string
+  outputDir?: string,
+  sessionId?: string
 ): string {
   const ext = MIME_TO_EXT[image.mimeType] || ".png";
 
-  const filePath = outputPath
-    ? resolve(outputPath)
-    : resolve(fallbackOutputDir(outputDir), `imgx-${randomUUID().slice(0, 8)}${ext}`);
+  let filePath: string;
+  if (outputPath) {
+    filePath = resolve(outputPath);
+  } else {
+    const baseDir = fallbackOutputDir(outputDir);
+    const targetDir = sessionId ? join(baseDir, sessionId) : baseDir;
+    filePath = resolve(targetDir, `imgx-${randomUUID().slice(0, 8)}${ext}`);
+  }
 
   mkdirSync(dirname(filePath), { recursive: true });
   writeFileSync(filePath, image.data);
