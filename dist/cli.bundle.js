@@ -40138,7 +40138,7 @@ function runRedo() {
 }
 
 // build/cli/index.js
-var VERSION2 = "1.0.3";
+var VERSION2 = "1.0.4";
 var HELP = `imgx v${VERSION2} \u2014 AI image generation and editing for MCP-compatible AI agents
 
 Commands:

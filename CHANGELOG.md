@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.4 (2026-03-03)
+
+### Added
+
+- **Skill ZIP for Claude Desktop** — `dist/image-generation-skill.zip` for uploading via Settings > Profile > Customize > Skills. Included in npm package under `dist/`
+- **`build:skill-zip` npm script** — `python scripts/build-skill-zip.py` generates the ZIP with forward-slash paths and ZIP_DEFLATED compression
+
 ## 1.0.3 (2026-03-03)
 
 ### Fixed

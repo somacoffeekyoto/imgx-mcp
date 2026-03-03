@@ -35,7 +35,7 @@ function buildImageContent(
 
 const server = new McpServer({
   name: "imgx",
-  version: "1.0.3",
+  version: "1.0.4",
 });
 
 // プロバイダ初期化

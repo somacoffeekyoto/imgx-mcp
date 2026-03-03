@@ -14,7 +14,7 @@ import { runUndo } from "./commands/undo.js";
 import { runRedo } from "./commands/redo.js";
 import * as out from "./output.js";
 
-const VERSION = "1.0.3";
+const VERSION = "1.0.4";
 
 const HELP = `imgx v${VERSION} — AI image generation and editing for MCP-compatible AI agents
 
