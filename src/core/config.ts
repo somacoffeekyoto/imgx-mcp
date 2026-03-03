@@ -85,25 +85,6 @@ export function resolveDefault(key: "provider" | "model" | "outputDir" | "aspect
   return config.defaults?.[key];
 }
 
-/** Save the last output file paths for --last flag */
-export function saveLastOutput(filePaths: string[]): void {
-  const dir = configDir();
-  mkdirSync(dir, { recursive: true });
-  const path = join(dir, "last-output.json");
-  writeFileSync(path, JSON.stringify({ filePaths, timestamp: Date.now() }) + "\n", "utf-8");
-}
-
-/** Load the last output file paths */
-export function loadLastOutput(): string[] | undefined {
-  try {
-    const raw = readFileSync(join(configDir(), "last-output.json"), "utf-8");
-    const data = JSON.parse(raw) as { filePaths?: string[] };
-    return data.filePaths;
-  } catch {
-    return undefined;
-  }
-}
-
 export function getConfigPath(): string {
   return configPath();
 }

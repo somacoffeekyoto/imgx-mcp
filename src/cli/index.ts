@@ -2,7 +2,8 @@ import { parseArgs } from "node:util";
 import { initGemini } from "../providers/gemini/index.js";
 import { initOpenAI } from "../providers/openai/index.js";
 import { getProvider, listProviders } from "../core/registry.js";
-import { resolveDefault, loadLastOutput } from "../core/config.js";
+import { resolveDefault } from "../core/config.js";
+import { getActiveEntry } from "../core/history.js";
 import { runInit } from "./commands/init.js";
 import { Capability } from "../core/types.js";
 import { runGenerate } from "./commands/generate.js";
@@ -190,17 +191,23 @@ function main(): void {
 
   if (command === "edit") {
     let inputImage = values.input as string | undefined;
-    if (!inputImage && values.last) {
-      const lastPaths = loadLastOutput();
-      if (!lastPaths || lastPaths.length === 0) {
+    let isNewSession = false;
+
+    if (inputImage) {
+      isNewSession = true; // explicit -i → new session
+    } else if (values.last) {
+      const active = getActiveEntry();
+      if (!active) {
         out.fail("No previous output found. Run generate or edit first, then use --last.");
       }
-      inputImage = lastPaths[0];
+      inputImage = active.filePaths[0];
+      isNewSession = false;
     }
+
     if (!inputImage) {
       out.fail("--input (-i) or --last (-l) is required for edit command");
     }
-    runEdit(provider, { ...commonArgs, inputImage });
+    runEdit(provider, { ...commonArgs, inputImage, isNewSession });
     return;
   }
 

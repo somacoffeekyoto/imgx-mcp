@@ -5,7 +5,8 @@ import { initGemini } from "../providers/gemini/index.js";
 import { initOpenAI } from "../providers/openai/index.js";
 import { getProvider, listProviders } from "../core/registry.js";
 import { saveImage } from "../core/storage.js";
-import { saveLastOutput, loadLastOutput } from "../core/config.js";
+import { pushHistory, getActiveEntry, loadHistory } from "../core/history.js";
+import { randomUUID } from "node:crypto";
 import type { GenerateInput, EditInput, GeneratedImage } from "../core/types.js";
 
 /** Build MCP content array with image previews + file path info */
@@ -79,17 +80,26 @@ server.tool(
         return { content: [{ type: "text", text: `Error: ${result.error || "Generation failed"}` }] };
       }
 
+      const sessionId = `s-${randomUUID().slice(0, 8)}`;
       const paths: string[] = [];
       for (let i = 0; i < result.images.length; i++) {
         const outputPath =
           result.images.length === 1
             ? args.output
             : args.output?.replace(/\.(\w+)$/, `-${i + 1}.$1`);
-        const saved = saveImage(result.images[i], outputPath, args.output_dir);
+        const saved = saveImage(result.images[i], outputPath, args.output_dir, sessionId);
         paths.push(saved);
       }
 
-      saveLastOutput(paths);
+      pushHistory({
+        filePaths: paths,
+        prompt: args.prompt,
+        provider: prov.info.name,
+        model: args.model || prov.info.defaultModel,
+        operation: "generate",
+        inputImage: null,
+        timestamp: Date.now(),
+      }, { newSession: true, sessionId });
       return { content: buildImageContent(result.images, paths) };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -139,8 +149,17 @@ server.tool(
         return { content: [{ type: "text", text: `Error: ${result.error || "Edit failed"}` }] };
       }
 
-      const saved = saveImage(result.images[0], args.output, args.output_dir);
-      saveLastOutput([saved]);
+      const sessionId = `s-${randomUUID().slice(0, 8)}`;
+      const saved = saveImage(result.images[0], args.output, args.output_dir, sessionId);
+      pushHistory({
+        filePaths: [saved],
+        prompt: args.prompt,
+        provider: prov.info.name,
+        model: args.model || prov.info.defaultModel,
+        operation: "edit",
+        inputImage: args.input,
+        timestamp: Date.now(),
+      }, { newSession: true, sessionId });
       return { content: buildImageContent(result.images, [saved]) };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -169,8 +188,8 @@ server.tool(
   },
   async (args) => {
     try {
-      const lastPaths = loadLastOutput();
-      if (!lastPaths || lastPaths.length === 0) {
+      const active = getActiveEntry();
+      if (!active) {
         return {
           content: [{ type: "text", text: "Error: No previous output found. Run generate_image or edit_image first." }],
         };
@@ -185,7 +204,7 @@ server.tool(
 
       const input: EditInput = {
         prompt: args.prompt,
-        inputImage: lastPaths[0],
+        inputImage: active.filePaths[0],
         aspectRatio: args.aspect_ratio,
         resolution: args.resolution,
         outputFormat: args.output_format,
@@ -196,9 +215,18 @@ server.tool(
         return { content: [{ type: "text", text: `Error: ${result.error || "Edit failed"}` }] };
       }
 
-      const saved = saveImage(result.images[0], args.output, args.output_dir);
-      saveLastOutput([saved]);
-      return { content: buildImageContent(result.images, [saved], { inputUsed: lastPaths[0] }) };
+      const sessionId = loadHistory().activeSessionId;
+      const saved = saveImage(result.images[0], args.output, args.output_dir, sessionId || undefined);
+      pushHistory({
+        filePaths: [saved],
+        prompt: args.prompt,
+        provider: prov.info.name,
+        model: args.model || prov.info.defaultModel,
+        operation: "edit",
+        inputImage: active.filePaths[0],
+        timestamp: Date.now(),
+      }, { newSession: false });
+      return { content: buildImageContent(result.images, [saved], { inputUsed: active.filePaths[0] }) };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       return { content: [{ type: "text", text: `Error: ${msg}` }] };
