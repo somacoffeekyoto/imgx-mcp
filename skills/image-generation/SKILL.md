@@ -16,7 +16,7 @@ Generate and edit images using the imgx MCP tools. Gemini and OpenAI providers s
 
 ## Setup
 
-If the MCP tools (`generate_image`, `edit_image`, `edit_last`, `list_providers`) are already available, skip this section.
+If the MCP tools (`generate_image`, `edit_image`, `edit_last`, `list_providers`, `undo_edit`, `redo_edit`, `edit_history`, `switch_session`, `clear_history`, `set_output_dir`) are already available, skip this section.
 
 ### 1. Add MCP server
 
@@ -116,6 +116,49 @@ Edit the last generated or edited image. No input path needed — automatically 
 
 List available providers and their capabilities. No parameters.
 
+### undo_edit
+
+Undo the last edit, reverting to the previous image state. No parameters.
+
+Returns the file path and position of the current entry after undo.
+
+### redo_edit
+
+Redo a previously undone edit. No parameters.
+
+Returns the file path and position of the current entry after redo.
+
+### edit_history
+
+Show the full edit history with all sessions. No parameters.
+
+Returns all sessions with their entries, including operation type, prompt, provider, file paths, and timestamps.
+
+### switch_session
+
+Switch to a different editing session to continue work on a previous image chain.
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `session_id` | Yes | Session ID to switch to (e.g. `s-a1b2c3d4`) |
+
+### clear_history
+
+Clear all edit history. Optionally delete image files.
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `delete_files` | No | Delete image files in session directories (default: false) |
+
+### set_output_dir
+
+Change the default output directory for generated images.
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `path` | Yes | New output directory path |
+| `move_files` | No | Move existing files to the new directory (default: false) |
+
 ## Practical workflows
 
 ### Blog cover image
@@ -136,6 +179,16 @@ generate_image → edit_last → edit_last → edit_last → done
 ```
 
 Tell the user what was generated, ask if they want changes, and use `edit_last` to apply them. This is the most natural workflow.
+
+### Undo / redo workflow
+
+Use `undo_edit` and `redo_edit` to navigate through edit history:
+
+```
+generate_image → edit_last → edit_last → undo_edit → undo_edit → redo_edit
+```
+
+Each generate starts a new session. Use `edit_history` to see all sessions, and `switch_session` to resume work on a previous image chain.
 
 ### Comparing providers
 
@@ -163,6 +216,8 @@ Generate the same prompt with different providers to let the user choose:
 - **Check provider capabilities**: Use `list_providers` if unsure what a provider supports
 - **Default output**: Images save to `~/Pictures/imgx/` with auto-generated filenames. Use `output` or `output_dir` to customize
 - **Inline preview**: MCP responses include base64 image data for inline display in supported clients
+- **Undo/redo**: Use `undo_edit` and `redo_edit` to step through edit history. Each session holds up to 10 entries
+- **Sessions**: Each `generate_image` starts a new session. Use `edit_history` to see all sessions and `switch_session` to resume a previous one
 
 ## CLI fallback
 
