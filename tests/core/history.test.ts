@@ -17,6 +17,10 @@ import {
   getActiveEntry,
   undoHistory,
   redoHistory,
+  switchSession,
+  getHistory,
+  clearHistory,
+  updateHistoryPaths,
 } from "../../src/core/history.js";
 
 function makeTmpDir(): string {
@@ -388,5 +392,147 @@ describe("undoHistory / redoHistory", () => {
 
   it("redo throws when no active session", () => {
     expect(() => redoHistory()).toThrow("No active session. Run generate first.");
+  });
+});
+
+describe("switchSession", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = makeTmpDir();
+    process.env.IMGX_TEST_CONFIG_DIR = tmpDir;
+  });
+
+  afterEach(() => {
+    delete process.env.IMGX_TEST_CONFIG_DIR;
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("switches active session", () => {
+    const id1 = pushHistory(makeEntry({ prompt: "session 1" }), { newSession: true });
+    const id2 = pushHistory(makeEntry({ prompt: "session 2" }), { newSession: true });
+
+    expect(loadHistory().activeSessionId).toBe(id2);
+
+    switchSession(id1);
+    expect(loadHistory().activeSessionId).toBe(id1);
+  });
+
+  it("throws for unknown session ID", () => {
+    pushHistory(makeEntry(), { newSession: true });
+
+    expect(() => switchSession("s-xxxxx")).toThrow("Session not found: s-xxxxx");
+  });
+});
+
+describe("getHistory", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = makeTmpDir();
+    process.env.IMGX_TEST_CONFIG_DIR = tmpDir;
+  });
+
+  afterEach(() => {
+    delete process.env.IMGX_TEST_CONFIG_DIR;
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("returns the same result as loadHistory", () => {
+    pushHistory(makeEntry({ prompt: "test" }), { newSession: true });
+
+    const fromGet = getHistory();
+    const fromLoad = loadHistory();
+
+    expect(fromGet).toEqual(fromLoad);
+  });
+});
+
+describe("clearHistory", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = makeTmpDir();
+    process.env.IMGX_TEST_CONFIG_DIR = tmpDir;
+  });
+
+  afterEach(() => {
+    delete process.env.IMGX_TEST_CONFIG_DIR;
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("clears all sessions and sets activeSessionId to null", () => {
+    pushHistory(makeEntry(), { newSession: true });
+    pushHistory(makeEntry(), { newSession: true });
+
+    clearHistory();
+
+    const history = loadHistory();
+    expect(history.sessions).toHaveLength(0);
+    expect(history.activeSessionId).toBeNull();
+  });
+
+  it("returns all file paths from cleared entries", () => {
+    pushHistory(
+      makeEntry({ filePaths: ["/tmp/a.png", "/tmp/b.png"] }),
+      { newSession: true },
+    );
+    pushHistory(
+      makeEntry({ filePaths: ["/tmp/c.png"] }),
+      { newSession: false },
+    );
+    pushHistory(
+      makeEntry({ filePaths: ["/tmp/d.png"] }),
+      { newSession: true },
+    );
+
+    const result = clearHistory();
+    expect(result.filePaths).toContain("/tmp/a.png");
+    expect(result.filePaths).toContain("/tmp/b.png");
+    expect(result.filePaths).toContain("/tmp/c.png");
+    expect(result.filePaths).toContain("/tmp/d.png");
+    expect(result.filePaths).toHaveLength(4);
+  });
+});
+
+describe("updateHistoryPaths", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = makeTmpDir();
+    process.env.IMGX_TEST_CONFIG_DIR = tmpDir;
+  });
+
+  afterEach(() => {
+    delete process.env.IMGX_TEST_CONFIG_DIR;
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("replaces old base dir in filePaths and inputImage", () => {
+    pushHistory(
+      makeEntry({
+        filePaths: ["/old/dir/img1.png", "/old/dir/img2.png"],
+        inputImage: "/old/dir/source.png",
+      }),
+      { newSession: true },
+    );
+    pushHistory(
+      makeEntry({
+        filePaths: ["/old/dir/img3.png"],
+        inputImage: null,
+      }),
+      { newSession: false },
+    );
+
+    updateHistoryPaths("/old/dir", "/new/dir");
+
+    const history = loadHistory();
+    const entries = history.sessions[0].entries;
+
+    expect(entries[0].filePaths[0]).toBe("/new/dir/img3.png");
+    expect(entries[0].inputImage).toBeNull();
+    expect(entries[1].filePaths[0]).toBe("/new/dir/img1.png");
+    expect(entries[1].filePaths[1]).toBe("/new/dir/img2.png");
+    expect(entries[1].inputImage).toBe("/new/dir/source.png");
   });
 });

@@ -174,3 +174,51 @@ export function redoHistory(): UndoRedoResult {
     position: `${session.cursor + 1}/${session.entries.length}`,
   };
 }
+
+export function switchSession(sessionId: string): void {
+  const history = loadHistory();
+  const session = history.sessions.find((s) => s.id === sessionId);
+  if (!session) {
+    throw new Error(`Session not found: ${sessionId}`);
+  }
+  history.activeSessionId = sessionId;
+  saveHistory(history);
+}
+
+export function getHistory(): OutputHistory {
+  return loadHistory();
+}
+
+export function clearHistory(): { filePaths: string[] } {
+  const history = loadHistory();
+  const filePaths: string[] = [];
+
+  for (const session of history.sessions) {
+    for (const entry of session.entries) {
+      filePaths.push(...entry.filePaths);
+    }
+  }
+
+  history.sessions = [];
+  history.activeSessionId = null;
+  saveHistory(history);
+
+  return { filePaths };
+}
+
+export function updateHistoryPaths(oldBase: string, newBase: string): void {
+  const history = loadHistory();
+
+  for (const session of history.sessions) {
+    for (const entry of session.entries) {
+      entry.filePaths = entry.filePaths.map((p) =>
+        p.startsWith(oldBase) ? newBase + p.slice(oldBase.length) : p,
+      );
+      if (entry.inputImage && entry.inputImage.startsWith(oldBase)) {
+        entry.inputImage = newBase + entry.inputImage.slice(oldBase.length);
+      }
+    }
+  }
+
+  saveHistory(history);
+}
