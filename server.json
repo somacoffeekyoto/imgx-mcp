@@ -1,17 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.somacoffeekyoto/imgx",
-  "description": "AI image generation and editing via CLI or MCP. Text-based editing, multi-provider.",
+  "description": "AI image generation and editing MCP server. Text-based editing, multi-provider (Gemini/OpenAI), session-based undo/redo, edit history management. 10 MCP tools.",
   "repository": {
     "url": "https://github.com/somacoffeekyoto/imgx-mcp",
     "source": "github"
   },
-  "version": "0.9.1",
+  "version": "1.0.3",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "imgx-mcp",
-      "version": "0.9.1",
+      "version": "1.0.3",
       "transport": {
         "type": "stdio"
       },
