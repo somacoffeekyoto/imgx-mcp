@@ -1,6 +1,12 @@
 # Changelog
 
-## 1.0.1 (2026-03-03)
+## 1.0.2 (2026-03-03)
+
+### Fixed
+
+- **v1.0.1 published with stale bundles** — `npm run bundle` (esbuild) was not run before `npm publish`, so v1.0.1 contained old `dist/mcp.bundle.js`. v1.0.2 is the correct release with all fixes below
+
+## 1.0.1 (2026-03-03) [YANKED — published with stale bundles]
 
 ### Fixed
 

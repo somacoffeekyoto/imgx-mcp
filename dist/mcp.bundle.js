@@ -28887,6 +28887,7 @@ __export(history_exports, {
   clearHistory: () => clearHistory,
   createSession: () => createSession,
   getActiveEntry: () => getActiveEntry,
+  getActiveSessionOutputDir: () => getActiveSessionOutputDir,
   getHistory: () => getHistory,
   loadHistory: () => loadHistory,
   pushHistory: () => pushHistory,
@@ -28944,6 +28945,8 @@ function pushHistory(entry, opts) {
     const session2 = createSession();
     if (opts.sessionId)
       session2.id = opts.sessionId;
+    if (opts.outputDir)
+      session2.outputDir = opts.outputDir;
     session2.entries.push(entry);
     history.sessions.push(session2);
     history.activeSessionId = session2.id;
@@ -28972,6 +28975,13 @@ function getActiveEntry() {
   if (!session || session.entries.length === 0)
     return void 0;
   return session.entries[session.cursor];
+}
+function getActiveSessionOutputDir() {
+  const history = loadHistory();
+  if (!history.activeSessionId)
+    return void 0;
+  const session = history.sessions.find((s2) => s2.id === history.activeSessionId);
+  return session?.outputDir;
 }
 function getActiveSession() {
   const history = loadHistory();
@@ -69810,7 +69820,7 @@ function buildImageContent(images, paths, extra) {
 }
 var server = new McpServer({
   name: "imgx",
-  version: "1.0.0"
+  version: "1.0.2"
 });
 initGemini();
 initOpenAI();
@@ -69862,7 +69872,7 @@ server.tool("generate_image", "Generate an image from a text prompt", {
       operation: "generate",
       inputImage: null,
       timestamp: Date.now()
-    }, { newSession: true, sessionId });
+    }, { newSession: true, sessionId, outputDir: args.output_dir });
     return { content: buildImageContent(result.images, paths) };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -69908,7 +69918,7 @@ server.tool("edit_image", "Edit an existing image with text instructions", {
       operation: "edit",
       inputImage: args.input,
       timestamp: Date.now()
-    }, { newSession: true, sessionId });
+    }, { newSession: true, sessionId, outputDir: args.output_dir });
     return { content: buildImageContent(result.images, [saved]) };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -69950,7 +69960,8 @@ server.tool("edit_last", "Edit the last generated/edited image with new text ins
       return { content: [{ type: "text", text: `Error: ${result.error || "Edit failed"}` }] };
     }
     const sessionId = loadHistory().activeSessionId;
-    const saved = saveImage(result.images[0], args.output, args.output_dir, sessionId || void 0);
+    const sessionOutputDir = args.output_dir || getActiveSessionOutputDir();
+    const saved = saveImage(result.images[0], args.output, sessionOutputDir, sessionId || void 0);
     pushHistory({
       filePaths: [saved],
       prompt: args.prompt,
@@ -70029,12 +70040,21 @@ server.tool("clear_history", "Clear all edit history. Optionally delete image fi
     let filesDeleted = 0;
     if (args.delete_files) {
       const { existsSync, rmSync } = await import("node:fs");
+      const { dirname: dirname2 } = await import("node:path");
+      const dirs = /* @__PURE__ */ new Set();
       for (const fp of result.filePaths) {
         try {
           if (existsSync(fp)) {
             rmSync(fp);
             filesDeleted++;
+            dirs.add(dirname2(fp));
           }
+        } catch {
+        }
+      }
+      for (const dir of dirs) {
+        try {
+          rmSync(dir);
         } catch {
         }
       }

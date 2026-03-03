@@ -39600,6 +39600,8 @@ function pushHistory(entry, opts) {
     const session2 = createSession();
     if (opts.sessionId)
       session2.id = opts.sessionId;
+    if (opts.outputDir)
+      session2.outputDir = opts.outputDir;
     session2.entries.push(entry);
     history.sessions.push(session2);
     history.activeSessionId = session2.id;
@@ -39762,7 +39764,7 @@ async function runGenerate(provider, args) {
     operation: "generate",
     inputImage: null,
     timestamp: Date.now()
-  }, { newSession: true, sessionId });
+  }, { newSession: true, sessionId, outputDir: args.outputDir });
   success({ filePaths: paths });
 }
 
@@ -39802,7 +39804,8 @@ async function runEdit(provider, args) {
     timestamp: Date.now()
   }, {
     newSession: args.isNewSession,
-    sessionId: args.isNewSession ? sessionId : void 0
+    sessionId: args.isNewSession ? sessionId : void 0,
+    outputDir: args.isNewSession ? args.outputDir : void 0
   });
   success({ filePaths: paths });
 }
@@ -40135,7 +40138,7 @@ function runRedo() {
 }
 
 // build/cli/index.js
-var VERSION2 = "1.0.0";
+var VERSION2 = "1.0.2";
 var HELP = `imgx v${VERSION2} \u2014 AI image generation and editing for MCP-compatible AI agents
 
 Commands:
