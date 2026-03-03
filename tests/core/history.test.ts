@@ -15,6 +15,8 @@ import {
   createSession,
   pushHistory,
   getActiveEntry,
+  undoHistory,
+  redoHistory,
 } from "../../src/core/history.js";
 
 function makeTmpDir(): string {
@@ -316,5 +318,75 @@ describe("getActiveEntry", () => {
 
     const oldest = getActiveEntry();
     expect(oldest?.prompt).toBe("gen");
+  });
+});
+
+describe("undoHistory / redoHistory", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = makeTmpDir();
+    process.env.IMGX_TEST_CONFIG_DIR = tmpDir;
+  });
+
+  afterEach(() => {
+    delete process.env.IMGX_TEST_CONFIG_DIR;
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("undo moves cursor and returns correct position string", () => {
+    pushHistory(makeEntry({ prompt: "gen" }), { newSession: true });
+    pushHistory(makeEntry({ prompt: "edit 1" }), { newSession: false });
+    pushHistory(makeEntry({ prompt: "edit 2" }), { newSession: false });
+
+    // 3 entries: [edit 2, edit 1, gen], cursor starts at 0
+    const result = undoHistory();
+    expect(result.entry.prompt).toBe("edit 1");
+    expect(result.position).toBe("2/3");
+
+    const result2 = undoHistory();
+    expect(result2.entry.prompt).toBe("gen");
+    expect(result2.position).toBe("3/3");
+  });
+
+  it("undo at oldest throws", () => {
+    pushHistory(makeEntry({ prompt: "gen" }), { newSession: true });
+
+    expect(() => undoHistory()).toThrow("Already at the oldest entry in this session");
+  });
+
+  it("redo moves cursor back", () => {
+    pushHistory(makeEntry({ prompt: "gen" }), { newSession: true });
+    pushHistory(makeEntry({ prompt: "edit 1" }), { newSession: false });
+    pushHistory(makeEntry({ prompt: "edit 2" }), { newSession: false });
+
+    // Undo twice
+    undoHistory();
+    undoHistory();
+
+    // Redo once
+    const result = redoHistory();
+    expect(result.entry.prompt).toBe("edit 1");
+    expect(result.position).toBe("2/3");
+
+    // Redo again
+    const result2 = redoHistory();
+    expect(result2.entry.prompt).toBe("edit 2");
+    expect(result2.position).toBe("1/3");
+  });
+
+  it("redo at latest throws", () => {
+    pushHistory(makeEntry({ prompt: "gen" }), { newSession: true });
+    pushHistory(makeEntry({ prompt: "edit 1" }), { newSession: false });
+
+    expect(() => redoHistory()).toThrow("Already at the latest entry");
+  });
+
+  it("undo throws when no active session", () => {
+    expect(() => undoHistory()).toThrow("No active session. Run generate first.");
+  });
+
+  it("redo throws when no active session", () => {
+    expect(() => redoHistory()).toThrow("No active session. Run generate first.");
   });
 });

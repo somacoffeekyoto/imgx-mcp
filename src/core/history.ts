@@ -129,3 +129,48 @@ export function getActiveEntry(): HistoryEntry | undefined {
 
   return session.entries[session.cursor];
 }
+
+function getActiveSession(): { history: OutputHistory; session: Session } {
+  const history = loadHistory();
+  if (!history.activeSessionId) {
+    throw new Error("No active session. Run generate first.");
+  }
+  const session = history.sessions.find((s) => s.id === history.activeSessionId);
+  if (!session) {
+    throw new Error("No active session. Run generate first.");
+  }
+  return { history, session };
+}
+
+export function undoHistory(): UndoRedoResult {
+  const { history, session } = getActiveSession();
+  const maxCursor = session.entries.length - 1;
+
+  if (session.cursor >= maxCursor) {
+    throw new Error("Already at the oldest entry in this session");
+  }
+
+  session.cursor += 1;
+  saveHistory(history);
+
+  return {
+    entry: session.entries[session.cursor],
+    position: `${session.cursor + 1}/${session.entries.length}`,
+  };
+}
+
+export function redoHistory(): UndoRedoResult {
+  const { history, session } = getActiveSession();
+
+  if (session.cursor <= 0) {
+    throw new Error("Already at the latest entry");
+  }
+
+  session.cursor -= 1;
+  saveHistory(history);
+
+  return {
+    entry: session.entries[session.cursor],
+    position: `${session.cursor + 1}/${session.entries.length}`,
+  };
+}
