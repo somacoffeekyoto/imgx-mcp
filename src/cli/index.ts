@@ -130,6 +130,7 @@ function main(): void {
       capabilities: Array.from(p.info.capabilities),
     }));
     out.success({ providers: data });
+    return;
   }
 
   // コマンド引数をパース（command の後ろだけ）
@@ -184,6 +185,7 @@ function main(): void {
       aspectRatios: provider.info.aspectRatios,
       resolutions: provider.info.resolutions || [],
     });
+    return;
   }
 
   // prompt 必須チェック

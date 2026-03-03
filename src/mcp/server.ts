@@ -349,13 +349,15 @@ server.tool(
     try {
       const { loadConfig, saveConfig } = await import("../core/config.js");
       const { updateHistoryPaths } = await import("../core/history.js");
+      const { resolve } = await import("node:path");
+      const { homedir } = await import("node:os");
       const config = loadConfig();
-      const oldDir = config.defaults?.outputDir;
+      const oldDir = config.defaults?.outputDir || resolve(homedir(), "Pictures", "imgx");
       if (!config.defaults) config.defaults = {};
       config.defaults.outputDir = args.path;
       saveConfig(config);
 
-      if (args.move_files && oldDir) {
+      if (args.move_files && oldDir !== args.path) {
         const { mkdirSync, cpSync, rmSync, existsSync } = await import("node:fs");
         if (existsSync(oldDir)) {
           mkdirSync(args.path, { recursive: true });

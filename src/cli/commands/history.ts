@@ -37,9 +37,9 @@ export function runHistory(args: string[]): void {
 function showHistory(): void {
   const history = getHistory();
   if (history.sessions.length === 0) {
-    out.success({ message: "No history", sessions: [] });
+    return out.success({ message: "No history", sessions: [] });
   }
-  out.success({
+  return out.success({
     activeSessionId: history.activeSessionId,
     sessions: history.sessions.map((s) => ({
       id: s.id,
@@ -62,12 +62,12 @@ function runClear(skipConfirm: boolean, keepFiles: boolean): void {
   const result = clearHistory();
 
   if (keepFiles || result.filePaths.length === 0) {
-    out.success({ cleared: true, filesDeleted: 0 });
+    return out.success({ cleared: true, filesDeleted: 0 });
   }
 
   if (skipConfirm) {
     const deleted = deleteSessionFiles(result.filePaths);
-    out.success({ cleared: true, filesDeleted: deleted });
+    return out.success({ cleared: true, filesDeleted: deleted });
   }
 
   // Interactive confirmation
