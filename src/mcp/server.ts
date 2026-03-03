@@ -5,7 +5,17 @@ import { initGemini } from "../providers/gemini/index.js";
 import { initOpenAI } from "../providers/openai/index.js";
 import { getProvider, listProviders } from "../core/registry.js";
 import { saveImage } from "../core/storage.js";
-import { saveLastOutput, loadLastOutput } from "../core/config.js";
+import {
+  pushHistory,
+  getActiveEntry,
+  loadHistory,
+  undoHistory,
+  redoHistory,
+  getHistory,
+  switchSession,
+  clearHistory,
+} from "../core/history.js";
+import { randomUUID } from "node:crypto";
 import type { GenerateInput, EditInput, GeneratedImage } from "../core/types.js";
 
 /** Build MCP content array with image previews + file path info */
@@ -24,7 +34,7 @@ function buildImageContent(
 
 const server = new McpServer({
   name: "imgx",
-  version: "0.9.0",
+  version: "1.0.0",
 });
 
 // プロバイダ初期化
@@ -79,17 +89,26 @@ server.tool(
         return { content: [{ type: "text", text: `Error: ${result.error || "Generation failed"}` }] };
       }
 
+      const sessionId = `s-${randomUUID().slice(0, 8)}`;
       const paths: string[] = [];
       for (let i = 0; i < result.images.length; i++) {
         const outputPath =
           result.images.length === 1
             ? args.output
             : args.output?.replace(/\.(\w+)$/, `-${i + 1}.$1`);
-        const saved = saveImage(result.images[i], outputPath, args.output_dir);
+        const saved = saveImage(result.images[i], outputPath, args.output_dir, sessionId);
         paths.push(saved);
       }
 
-      saveLastOutput(paths);
+      pushHistory({
+        filePaths: paths,
+        prompt: args.prompt,
+        provider: prov.info.name,
+        model: args.model || prov.info.defaultModel,
+        operation: "generate",
+        inputImage: null,
+        timestamp: Date.now(),
+      }, { newSession: true, sessionId });
       return { content: buildImageContent(result.images, paths) };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -139,8 +158,17 @@ server.tool(
         return { content: [{ type: "text", text: `Error: ${result.error || "Edit failed"}` }] };
       }
 
-      const saved = saveImage(result.images[0], args.output, args.output_dir);
-      saveLastOutput([saved]);
+      const sessionId = `s-${randomUUID().slice(0, 8)}`;
+      const saved = saveImage(result.images[0], args.output, args.output_dir, sessionId);
+      pushHistory({
+        filePaths: [saved],
+        prompt: args.prompt,
+        provider: prov.info.name,
+        model: args.model || prov.info.defaultModel,
+        operation: "edit",
+        inputImage: args.input,
+        timestamp: Date.now(),
+      }, { newSession: true, sessionId });
       return { content: buildImageContent(result.images, [saved]) };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -169,8 +197,8 @@ server.tool(
   },
   async (args) => {
     try {
-      const lastPaths = loadLastOutput();
-      if (!lastPaths || lastPaths.length === 0) {
+      const active = getActiveEntry();
+      if (!active) {
         return {
           content: [{ type: "text", text: "Error: No previous output found. Run generate_image or edit_image first." }],
         };
@@ -185,7 +213,7 @@ server.tool(
 
       const input: EditInput = {
         prompt: args.prompt,
-        inputImage: lastPaths[0],
+        inputImage: active.filePaths[0],
         aspectRatio: args.aspect_ratio,
         resolution: args.resolution,
         outputFormat: args.output_format,
@@ -196,12 +224,157 @@ server.tool(
         return { content: [{ type: "text", text: `Error: ${result.error || "Edit failed"}` }] };
       }
 
-      const saved = saveImage(result.images[0], args.output, args.output_dir);
-      saveLastOutput([saved]);
-      return { content: buildImageContent(result.images, [saved], { inputUsed: lastPaths[0] }) };
+      const sessionId = loadHistory().activeSessionId;
+      const saved = saveImage(result.images[0], args.output, args.output_dir, sessionId || undefined);
+      pushHistory({
+        filePaths: [saved],
+        prompt: args.prompt,
+        provider: prov.info.name,
+        model: args.model || prov.info.defaultModel,
+        operation: "edit",
+        inputImage: active.filePaths[0],
+        timestamp: Date.now(),
+      }, { newSession: false });
+      return { content: buildImageContent(result.images, [saved], { inputUsed: active.filePaths[0] }) };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       return { content: [{ type: "text", text: `Error: ${msg}` }] };
+    }
+  }
+);
+
+// --- undo_edit ---
+server.tool("undo_edit", "Undo the last edit, reverting to the previous image state", {}, async () => {
+  try {
+    const result = undoHistory();
+    return {
+      content: [{ type: "text", text: JSON.stringify({
+        success: true,
+        filePath: result.entry.filePaths[0],
+        position: result.position,
+        prompt: result.entry.prompt,
+      })}],
+    };
+  } catch (err) {
+    return { content: [{ type: "text", text: `Error: ${err instanceof Error ? err.message : String(err)}` }] };
+  }
+});
+
+// --- redo_edit ---
+server.tool("redo_edit", "Redo a previously undone edit", {}, async () => {
+  try {
+    const result = redoHistory();
+    return {
+      content: [{ type: "text", text: JSON.stringify({
+        success: true,
+        filePath: result.entry.filePaths[0],
+        position: result.position,
+        prompt: result.entry.prompt,
+      })}],
+    };
+  } catch (err) {
+    return { content: [{ type: "text", text: `Error: ${err instanceof Error ? err.message : String(err)}` }] };
+  }
+});
+
+// --- edit_history ---
+server.tool("edit_history", "Show the full edit history with all sessions", {}, async () => {
+  const history = getHistory();
+  return {
+    content: [{ type: "text", text: JSON.stringify({
+      activeSessionId: history.activeSessionId,
+      sessions: history.sessions.map((s) => ({
+        id: s.id,
+        cursor: s.cursor,
+        entries: s.entries.map((e) => ({
+          operation: e.operation,
+          prompt: e.prompt,
+          provider: e.provider,
+          filePaths: e.filePaths,
+          timestamp: e.timestamp,
+        })),
+      })),
+    })}],
+  };
+});
+
+// --- switch_session ---
+server.tool(
+  "switch_session",
+  "Switch to a different editing session to continue work on a previous image chain",
+  { session_id: z.string().describe("Session ID to switch to (e.g. s-a1b2c3d4)") },
+  async (args) => {
+    try {
+      switchSession(args.session_id);
+      return { content: [{ type: "text", text: JSON.stringify({ success: true, activeSessionId: args.session_id }) }] };
+    } catch (err) {
+      return { content: [{ type: "text", text: `Error: ${err instanceof Error ? err.message : String(err)}` }] };
+    }
+  }
+);
+
+// --- clear_history ---
+server.tool(
+  "clear_history",
+  "Clear all edit history. Optionally delete image files.",
+  { delete_files: z.boolean().optional().default(false).describe("Delete image files in session directories") },
+  async (args) => {
+    try {
+      const result = clearHistory();
+      let filesDeleted = 0;
+      if (args.delete_files) {
+        const { existsSync, rmSync } = await import("node:fs");
+        for (const fp of result.filePaths) {
+          try {
+            if (existsSync(fp)) { rmSync(fp); filesDeleted++; }
+          } catch { /* skip */ }
+        }
+      }
+      return { content: [{ type: "text", text: JSON.stringify({ success: true, cleared: true, filesDeleted }) }] };
+    } catch (err) {
+      return { content: [{ type: "text", text: `Error: ${err instanceof Error ? err.message : String(err)}` }] };
+    }
+  }
+);
+
+// --- set_output_dir ---
+server.tool(
+  "set_output_dir",
+  "Change the default output directory for generated images",
+  {
+    path: z.string().describe("New output directory path"),
+    move_files: z.boolean().optional().default(false).describe("Move existing files to the new directory"),
+  },
+  async (args) => {
+    try {
+      const { loadConfig, saveConfig } = await import("../core/config.js");
+      const { updateHistoryPaths } = await import("../core/history.js");
+      const { resolve } = await import("node:path");
+      const { homedir } = await import("node:os");
+      const config = loadConfig();
+      const oldDir = config.defaults?.outputDir || resolve(homedir(), "Pictures", "imgx");
+      if (!config.defaults) config.defaults = {};
+      config.defaults.outputDir = args.path;
+      saveConfig(config);
+
+      if (args.move_files && oldDir !== args.path) {
+        const { mkdirSync, cpSync, rmSync, existsSync } = await import("node:fs");
+        if (existsSync(oldDir)) {
+          mkdirSync(args.path, { recursive: true });
+          cpSync(oldDir, args.path, { recursive: true });
+          rmSync(oldDir, { recursive: true, force: true });
+          updateHistoryPaths(oldDir, args.path);
+        }
+      }
+
+      return { content: [{ type: "text", text: JSON.stringify({
+        success: true,
+        outputDir: args.path,
+        previousDir: oldDir || "(default)",
+        filesMoved: args.move_files,
+      })}]};
+    } catch (err) {
+      return { content: [{ type: "text", text: `Error: ${err instanceof Error ? err.message : String(err)}` }] };
     }
   }
 );

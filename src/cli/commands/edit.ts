@@ -1,8 +1,9 @@
+import { randomUUID } from "node:crypto";
 import type { ImageProvider } from "../../core/provider.js";
 import { Capability } from "../../core/types.js";
 import { saveImage } from "../../core/storage.js";
 import { findProviderWith } from "../../core/registry.js";
-import { saveLastOutput } from "../../core/config.js";
+import { pushHistory, loadHistory } from "../../core/history.js";
 import * as out from "../output.js";
 
 interface EditArgs {
@@ -14,6 +15,7 @@ interface EditArgs {
   resolution?: string;
   outputFormat?: "png" | "jpeg" | "webp";
   model?: string;
+  isNewSession: boolean;
 }
 
 export async function runEdit(
@@ -49,12 +51,27 @@ export async function runEdit(
     out.fail(result.error || "Edit failed");
   }
 
+  const sessionId = args.isNewSession
+    ? `s-${randomUUID().slice(0, 8)}`
+    : loadHistory().activeSessionId;
+
   const paths: string[] = [];
   for (const image of result.images) {
-    const saved = saveImage(image, args.output, args.outputDir);
+    const saved = saveImage(image, args.output, args.outputDir, sessionId || undefined);
     paths.push(saved);
   }
 
-  saveLastOutput(paths);
+  pushHistory({
+    filePaths: paths,
+    prompt: args.prompt,
+    provider: provider.info.name,
+    model: args.model || provider.info.defaultModel,
+    operation: "edit",
+    inputImage: args.inputImage,
+    timestamp: Date.now(),
+  }, {
+    newSession: args.isNewSession,
+    sessionId: args.isNewSession ? sessionId! : undefined,
+  });
   out.success({ filePaths: paths });
 }

@@ -2,21 +2,28 @@ import { parseArgs } from "node:util";
 import { initGemini } from "../providers/gemini/index.js";
 import { initOpenAI } from "../providers/openai/index.js";
 import { getProvider, listProviders } from "../core/registry.js";
-import { resolveDefault, loadLastOutput } from "../core/config.js";
+import { resolveDefault } from "../core/config.js";
+import { getActiveEntry } from "../core/history.js";
 import { runInit } from "./commands/init.js";
 import { Capability } from "../core/types.js";
 import { runGenerate } from "./commands/generate.js";
 import { runEdit } from "./commands/edit.js";
 import { runConfig } from "./commands/config.js";
+import { runHistory } from "./commands/history.js";
+import { runUndo } from "./commands/undo.js";
+import { runRedo } from "./commands/redo.js";
 import * as out from "./output.js";
 
-const VERSION = "0.9.0";
+const VERSION = "1.0.0";
 
 const HELP = `imgx v${VERSION} — AI image generation and editing for MCP-compatible AI agents
 
 Commands:
   generate      Generate image from text prompt
   edit          Edit existing image with text instructions
+  undo          Undo last edit (move to previous state)
+  redo          Redo (move to next state)
+  history       Show edit history
   init          Create .imgxrc project config in current directory
   providers     List available providers
   capabilities  Show capabilities of current provider
@@ -59,6 +66,13 @@ Environment variables (override config file):
   IMGX_PROVIDER              Default provider
   IMGX_MODEL                 Default model
   IMGX_OUTPUT_DIR            Default output directory
+
+History:
+  imgx history                       Show all sessions and entries
+  imgx history switch <session-id>   Switch to a different session
+  imgx history clear                 Clear history (with confirmation)
+  imgx history clear --yes           Clear history and delete files
+  imgx history clear --keep-files    Clear history, keep image files
 `;
 
 function main(): void {
@@ -89,6 +103,21 @@ function main(): void {
     return;
   }
 
+  if (command === "undo") {
+    runUndo();
+    return;
+  }
+
+  if (command === "redo") {
+    runRedo();
+    return;
+  }
+
+  if (command === "history") {
+    runHistory(args.slice(1));
+    return;
+  }
+
   if (command === "providers") {
     const all = listProviders();
     if (all.length === 0) {
@@ -101,6 +130,7 @@ function main(): void {
       capabilities: Array.from(p.info.capabilities),
     }));
     out.success({ providers: data });
+    return;
   }
 
   // コマンド引数をパース（command の後ろだけ）
@@ -155,6 +185,7 @@ function main(): void {
       aspectRatios: provider.info.aspectRatios,
       resolutions: provider.info.resolutions || [],
     });
+    return;
   }
 
   // prompt 必須チェック
@@ -190,17 +221,23 @@ function main(): void {
 
   if (command === "edit") {
     let inputImage = values.input as string | undefined;
-    if (!inputImage && values.last) {
-      const lastPaths = loadLastOutput();
-      if (!lastPaths || lastPaths.length === 0) {
+    let isNewSession = false;
+
+    if (inputImage) {
+      isNewSession = true; // explicit -i → new session
+    } else if (values.last) {
+      const active = getActiveEntry();
+      if (!active) {
         out.fail("No previous output found. Run generate or edit first, then use --last.");
       }
-      inputImage = lastPaths[0];
+      inputImage = active.filePaths[0];
+      isNewSession = false;
     }
+
     if (!inputImage) {
       out.fail("--input (-i) or --last (-l) is required for edit command");
     }
-    runEdit(provider, { ...commonArgs, inputImage });
+    runEdit(provider, { ...commonArgs, inputImage, isNewSession });
     return;
   }
 

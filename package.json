@@ -1,6 +1,6 @@
 {
   "name": "imgx-mcp",
-  "version": "0.9.1",
+  "version": "1.0.0",
   "mcpName": "io.github.somacoffeekyoto/imgx",
   "description": "AI image generation and editing for Claude Code, Codex CLI, and MCP-compatible AI agents",
   "type": "module",
@@ -11,7 +11,9 @@
   "scripts": {
     "build": "tsc",
     "bundle": "npm run build && node esbuild.config.js",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [
     "image-generation",
@@ -52,6 +54,7 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "esbuild": "^0.27.0",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "vitest": "^4.0.18"
   }
 }

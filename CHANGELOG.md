@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.0.0 (2026-03-03)
+
+### Added
+
+- **Session-based undo/redo** — N-step undo and redo within editing sessions. Each `generate` starts a new session; `edit --last` appends to the active session. Up to 10 entries per session with root protection
+- **Edit history** — Full session history with metadata (prompt, provider, model, operation, timestamps). View with `imgx history` or `edit_history` MCP tool
+- **Session management** — Switch between sessions (`imgx history switch <id>` / `switch_session`), clear history with optional file deletion (`imgx history clear` / `clear_history`)
+- **Session directories** — Image output organized by session ID under the output directory (`~/Pictures/imgx/<session-id>/`)
+- **Output directory migration** — `imgx config set output-dir` now offers to move existing files and updates all history paths
+- **6 new MCP tools** — `undo_edit`, `redo_edit`, `edit_history`, `switch_session`, `clear_history`, `set_output_dir`
+- **3 new CLI commands** — `imgx undo`, `imgx redo`, `imgx history` (with `switch` and `clear` subcommands)
+- **Test framework** — Vitest introduced with 31 tests covering history and storage modules
+
+### Changed
+
+- `saveLastOutput` / `loadLastOutput` replaced by session-based `pushHistory` / `getActiveEntry`
+- `last-output.json` replaced by `output-history.json` (no backward compatibility)
+- `edit -i <image>` now creates a new session (external image starts a new chain)
+- `edit --last` / `edit_last` appends to the active session at cursor position
+
+### Removed
+
+- `last-output.json` — replaced by `output-history.json`
+- `saveLastOutput()` / `loadLastOutput()` functions from config module
+
 ## 0.9.1 (2026-03-02)
 
 ### Added

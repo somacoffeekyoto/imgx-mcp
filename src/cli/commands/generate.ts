@@ -1,6 +1,7 @@
+import { randomUUID } from "node:crypto";
 import type { ImageProvider } from "../../core/provider.js";
 import { saveImage } from "../../core/storage.js";
-import { saveLastOutput } from "../../core/config.js";
+import { pushHistory } from "../../core/history.js";
 import * as out from "../output.js";
 
 interface GenerateArgs {
@@ -33,6 +34,7 @@ export async function runGenerate(
     out.fail(result.error || "Generation failed");
   }
 
+  const sessionId = `s-${randomUUID().slice(0, 8)}`;
   const paths: string[] = [];
   for (let i = 0; i < result.images.length; i++) {
     const outputPath =
@@ -40,10 +42,18 @@ export async function runGenerate(
         ? args.output
         : args.output?.replace(/\.(\w+)$/, `-${i + 1}.$1`);
 
-    const saved = saveImage(result.images[i], outputPath, args.outputDir);
+    const saved = saveImage(result.images[i], outputPath, args.outputDir, sessionId);
     paths.push(saved);
   }
 
-  saveLastOutput(paths);
+  pushHistory({
+    filePaths: paths,
+    prompt: args.prompt,
+    provider: provider.info.name,
+    model: args.model || provider.info.defaultModel,
+    operation: "generate",
+    inputImage: null,
+    timestamp: Date.now(),
+  }, { newSession: true, sessionId });
   out.success({ filePaths: paths });
 }
