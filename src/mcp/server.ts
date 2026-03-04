@@ -231,7 +231,7 @@ server.tool(
 
       const sessionId = loadHistory().activeSessionId;
       const sessionOutputDir = args.output_dir || getActiveSessionOutputDir();
-      const saved = saveImage(result.images[0], args.output, sessionOutputDir, sessionId || undefined);
+      const saved = saveImage(result.images[0], args.output, sessionOutputDir, sessionId || undefined, true);
       pushHistory({
         filePaths: [saved],
         prompt: args.prompt,

@@ -39226,10 +39226,239 @@ function getApiKeyFromEnv() {
 }
 
 // build/core/storage.js
-import { readFileSync as readFileSync2, writeFileSync as writeFileSync2, mkdirSync as mkdirSync2 } from "node:fs";
-import { dirname as dirname2, join as join2, resolve as resolve2 } from "node:path";
+import { readFileSync as readFileSync3, writeFileSync as writeFileSync3, mkdirSync as mkdirSync3 } from "node:fs";
+import { dirname as dirname3, join as join3, resolve as resolve3 } from "node:path";
+import { randomUUID as randomUUID2 } from "node:crypto";
+import { homedir as homedir3 } from "node:os";
+
+// build/core/history.js
+import { readFileSync as readFileSync2, writeFileSync as writeFileSync2, mkdirSync as mkdirSync2, existsSync as existsSync2, rmSync } from "node:fs";
+import { basename as basename3, dirname as dirname2, extname, join as join2, resolve as resolve2, sep } from "node:path";
+import { homedir as homedir2, platform as platform2 } from "node:os";
 import { randomUUID } from "node:crypto";
-import { homedir as homedir2 } from "node:os";
+var HISTORY_FILE = "output-history.json";
+function globalHistoryDir() {
+  if (platform2() === "win32") {
+    return join2(process.env.APPDATA || join2(homedir2(), "AppData", "Roaming"), "imgx");
+  }
+  return join2(process.env.XDG_CONFIG_HOME || join2(homedir2(), ".config"), "imgx");
+}
+function historyDir() {
+  if (process.env.IMGX_TEST_CONFIG_DIR)
+    return process.env.IMGX_TEST_CONFIG_DIR;
+  const projectRoot = findProjectRoot();
+  if (projectRoot)
+    return join2(projectRoot, ".imgx");
+  return globalHistoryDir();
+}
+function historyPath() {
+  return join2(historyDir(), HISTORY_FILE);
+}
+function emptyHistory() {
+  return {
+    sessions: [],
+    activeSessionId: null,
+    maxEntriesPerSession: 10
+  };
+}
+function loadHistory() {
+  try {
+    const raw = readFileSync2(historyPath(), "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return emptyHistory();
+  }
+}
+function saveHistory(history) {
+  const dir = historyDir();
+  mkdirSync2(dir, { recursive: true });
+  writeFileSync2(historyPath(), JSON.stringify(history, null, 2) + "\n", "utf-8");
+}
+function createSession() {
+  return {
+    id: `s-${randomUUID().slice(0, 8)}`,
+    entries: [],
+    cursor: 0
+  };
+}
+function pushHistory(entry, opts) {
+  const history = loadHistory();
+  if (opts.newSession) {
+    const session2 = createSession();
+    if (opts.sessionId)
+      session2.id = opts.sessionId;
+    if (opts.outputDir)
+      session2.outputDir = opts.outputDir;
+    if (entry.filePaths.length > 0) {
+      const fp = entry.filePaths[0];
+      const ext = extname(fp);
+      session2.baseName = basename3(fp, ext);
+      session2.baseExt = ext;
+      session2.baseDir = dirname2(fp);
+    }
+    session2.entries.push(entry);
+    history.sessions.push(session2);
+    history.activeSessionId = session2.id;
+    saveHistory(history);
+    return session2.id;
+  }
+  const session = history.sessions.find((s2) => s2.id === history.activeSessionId);
+  if (!session)
+    throw new Error("No active session. Run generate first.");
+  if (session.cursor > 0) {
+    const removed = session.entries.splice(0, session.cursor);
+    for (const entry2 of removed) {
+      for (const fp of entry2.filePaths) {
+        try {
+          if (existsSync2(fp))
+            rmSync(fp);
+        } catch {
+        }
+      }
+    }
+    session.cursor = 0;
+  }
+  session.entries.unshift(entry);
+  while (session.entries.length > history.maxEntriesPerSession) {
+    session.entries.splice(session.entries.length - 2, 1);
+  }
+  saveHistory(history);
+  return session.id;
+}
+function getActiveEntry() {
+  const history = loadHistory();
+  if (!history.activeSessionId)
+    return void 0;
+  const session = history.sessions.find((s2) => s2.id === history.activeSessionId);
+  if (!session || session.entries.length === 0)
+    return void 0;
+  return session.entries[session.cursor];
+}
+function getActiveSession() {
+  const history = loadHistory();
+  if (!history.activeSessionId) {
+    throw new Error("No active session. Run generate first.");
+  }
+  const session = history.sessions.find((s2) => s2.id === history.activeSessionId);
+  if (!session) {
+    throw new Error("No active session. Run generate first.");
+  }
+  return { history, session };
+}
+function undoHistory() {
+  const { history, session } = getActiveSession();
+  const maxCursor = session.entries.length - 1;
+  if (session.cursor >= maxCursor) {
+    throw new Error("Already at the oldest entry in this session");
+  }
+  session.cursor += 1;
+  saveHistory(history);
+  return {
+    entry: session.entries[session.cursor],
+    position: `${session.cursor + 1}/${session.entries.length}`
+  };
+}
+function redoHistory() {
+  const { history, session } = getActiveSession();
+  if (session.cursor <= 0) {
+    throw new Error("Already at the latest entry");
+  }
+  session.cursor -= 1;
+  saveHistory(history);
+  return {
+    entry: session.entries[session.cursor],
+    position: `${session.cursor + 1}/${session.entries.length}`
+  };
+}
+function switchSession(sessionId) {
+  const history = loadHistory();
+  const session = history.sessions.find((s2) => s2.id === sessionId);
+  if (!session) {
+    throw new Error(`Session not found: ${sessionId}`);
+  }
+  history.activeSessionId = sessionId;
+  saveHistory(history);
+}
+function getHistory() {
+  return loadHistory();
+}
+function clearHistory() {
+  const history = loadHistory();
+  const filePaths = [];
+  for (const session of history.sessions) {
+    for (const entry of session.entries) {
+      filePaths.push(...entry.filePaths);
+    }
+  }
+  history.sessions = [];
+  history.activeSessionId = null;
+  saveHistory(history);
+  return { filePaths };
+}
+function clearSession(sessionId) {
+  const history = loadHistory();
+  const idx = history.sessions.findIndex((s2) => s2.id === sessionId);
+  if (idx === -1)
+    throw new Error(`Session not found: ${sessionId}`);
+  const [removed] = history.sessions.splice(idx, 1);
+  const filePaths = [];
+  for (const entry of removed.entries)
+    filePaths.push(...entry.filePaths);
+  if (history.activeSessionId === sessionId)
+    history.activeSessionId = null;
+  saveHistory(history);
+  return { filePaths };
+}
+function clearGlobalHistory() {
+  const globalPath = join2(globalHistoryDir(), HISTORY_FILE);
+  try {
+    const raw = readFileSync2(globalPath, "utf-8");
+    const history = JSON.parse(raw);
+    const filePaths = [];
+    for (const session of history.sessions) {
+      for (const entry of session.entries)
+        filePaths.push(...entry.filePaths);
+    }
+    const dir = globalHistoryDir();
+    mkdirSync2(dir, { recursive: true });
+    writeFileSync2(globalPath, JSON.stringify(emptyHistory(), null, 2) + "\n", "utf-8");
+    return { filePaths };
+  } catch {
+    return { filePaths: [] };
+  }
+}
+function updateHistoryPaths(oldBase, newBase) {
+  const history = loadHistory();
+  for (const session of history.sessions) {
+    for (const entry of session.entries) {
+      entry.filePaths = entry.filePaths.map((p) => p.startsWith(oldBase) ? newBase + p.slice(oldBase.length) : p);
+      if (entry.inputImage && entry.inputImage.startsWith(oldBase)) {
+        entry.inputImage = newBase + entry.inputImage.slice(oldBase.length);
+      }
+    }
+  }
+  saveHistory(history);
+}
+function getSessionChainNumber() {
+  const history = loadHistory();
+  if (!history.activeSessionId)
+    return null;
+  const session = history.sessions.find((s2) => s2.id === history.activeSessionId);
+  if (!session || session.entries.length === 0)
+    return null;
+  return session.entries.length;
+}
+function getSessionBaseInfo() {
+  const history = loadHistory();
+  if (!history.activeSessionId)
+    return null;
+  const session = history.sessions.find((s2) => s2.id === history.activeSessionId);
+  if (!session?.baseName)
+    return null;
+  return { baseName: session.baseName, baseExt: session.baseExt, baseDir: session.baseDir };
+}
+
+// build/core/storage.js
 var MIME_TO_EXT = {
   "image/png": ".png",
   "image/jpeg": ".jpg",
@@ -39237,7 +39466,7 @@ var MIME_TO_EXT = {
 };
 function readImageAsBase64(filePath) {
   const absPath = resolveProjectPath(filePath);
-  const buffer = readFileSync2(absPath);
+  const buffer = readFileSync3(absPath);
   const ext = filePath.split(".").pop()?.toLowerCase();
   const mimeType = ext === "jpg" || ext === "jpeg" ? "image/jpeg" : ext === "webp" ? "image/webp" : "image/png";
   return { data: buffer.toString("base64"), mimeType };
@@ -39250,21 +39479,29 @@ function fallbackOutputDir(outputDir) {
     return resolveProjectPath(configured);
   const projectRoot = findProjectRoot();
   if (projectRoot)
-    return join2(projectRoot, ".imgx");
-  return join2(homedir2(), "Pictures", "imgx");
+    return join3(projectRoot, ".imgx");
+  return join3(homedir3(), "Pictures", "imgx");
 }
-function saveImage(image, outputPath, outputDir, sessionId) {
+function saveImage(image, outputPath, outputDir, sessionId, isChained) {
   const ext = MIME_TO_EXT[image.mimeType] || ".png";
   let filePath;
-  if (outputPath) {
+  if (isChained) {
+    const baseInfo = getSessionBaseInfo();
+    const chainNum = getSessionChainNumber();
+    if (baseInfo && chainNum !== null) {
+      filePath = resolve3(baseInfo.baseDir, `${baseInfo.baseName}-${chainNum}${baseInfo.baseExt}`);
+    } else {
+      filePath = resolve3(fallbackOutputDir(outputDir), sessionId || "", `imgx-${randomUUID2().slice(0, 8)}${ext}`);
+    }
+  } else if (outputPath) {
     filePath = resolveProjectPath(outputPath);
   } else {
     const baseDir = fallbackOutputDir(outputDir);
-    const targetDir = sessionId ? join2(baseDir, sessionId) : baseDir;
-    filePath = resolve2(targetDir, `imgx-${randomUUID().slice(0, 8)}${ext}`);
+    const targetDir = sessionId ? join3(baseDir, sessionId) : baseDir;
+    filePath = resolve3(targetDir, `imgx-${randomUUID2().slice(0, 8)}${ext}`);
   }
-  mkdirSync2(dirname2(filePath), { recursive: true });
-  writeFileSync2(filePath, image.data);
+  mkdirSync3(dirname3(filePath), { recursive: true });
+  writeFileSync3(filePath, image.data);
   return filePath;
 }
 
@@ -39399,7 +39636,7 @@ function initGemini() {
 }
 
 // build/providers/openai/client.js
-import { readFileSync as readFileSync3 } from "node:fs";
+import { readFileSync as readFileSync4 } from "node:fs";
 
 // build/providers/openai/capabilities.js
 var OPENAI_PROVIDER_INFO = {
@@ -39513,7 +39750,7 @@ var OpenAIProvider = class {
   async edit(input, model) {
     const modelName = model || this.info.defaultModel;
     const absPath = resolveProjectPath(input.inputImage);
-    const imageBuffer = readFileSync3(absPath);
+    const imageBuffer = readFileSync4(absPath);
     const ext = absPath.split(".").pop()?.toLowerCase();
     const contentType = ext === "jpg" || ext === "jpeg" ? "image/jpeg" : ext === "webp" ? "image/webp" : "image/png";
     const fields = {
@@ -39584,201 +39821,8 @@ function initOpenAI() {
   registerProvider(new OpenAIProvider(apiKey));
 }
 
-// build/core/history.js
-import { readFileSync as readFileSync4, writeFileSync as writeFileSync3, mkdirSync as mkdirSync3 } from "node:fs";
-import { join as join3, resolve as resolve3, sep } from "node:path";
-import { homedir as homedir3, platform as platform2 } from "node:os";
-import { randomUUID as randomUUID2 } from "node:crypto";
-var HISTORY_FILE = "output-history.json";
-function globalHistoryDir() {
-  if (platform2() === "win32") {
-    return join3(process.env.APPDATA || join3(homedir3(), "AppData", "Roaming"), "imgx");
-  }
-  return join3(process.env.XDG_CONFIG_HOME || join3(homedir3(), ".config"), "imgx");
-}
-function historyDir() {
-  if (process.env.IMGX_TEST_CONFIG_DIR)
-    return process.env.IMGX_TEST_CONFIG_DIR;
-  const projectRoot = findProjectRoot();
-  if (projectRoot)
-    return join3(projectRoot, ".imgx");
-  return globalHistoryDir();
-}
-function historyPath() {
-  return join3(historyDir(), HISTORY_FILE);
-}
-function emptyHistory() {
-  return {
-    sessions: [],
-    activeSessionId: null,
-    maxEntriesPerSession: 10
-  };
-}
-function loadHistory() {
-  try {
-    const raw = readFileSync4(historyPath(), "utf-8");
-    return JSON.parse(raw);
-  } catch {
-    return emptyHistory();
-  }
-}
-function saveHistory(history) {
-  const dir = historyDir();
-  mkdirSync3(dir, { recursive: true });
-  writeFileSync3(historyPath(), JSON.stringify(history, null, 2) + "\n", "utf-8");
-}
-function createSession() {
-  return {
-    id: `s-${randomUUID2().slice(0, 8)}`,
-    entries: [],
-    cursor: 0
-  };
-}
-function pushHistory(entry, opts) {
-  const history = loadHistory();
-  if (opts.newSession) {
-    const session2 = createSession();
-    if (opts.sessionId)
-      session2.id = opts.sessionId;
-    if (opts.outputDir)
-      session2.outputDir = opts.outputDir;
-    session2.entries.push(entry);
-    history.sessions.push(session2);
-    history.activeSessionId = session2.id;
-    saveHistory(history);
-    return session2.id;
-  }
-  const session = history.sessions.find((s2) => s2.id === history.activeSessionId);
-  if (!session)
-    throw new Error("No active session. Run generate first.");
-  if (session.cursor > 0) {
-    session.entries.splice(0, session.cursor);
-    session.cursor = 0;
-  }
-  session.entries.unshift(entry);
-  while (session.entries.length > history.maxEntriesPerSession) {
-    session.entries.splice(session.entries.length - 2, 1);
-  }
-  saveHistory(history);
-  return session.id;
-}
-function getActiveEntry() {
-  const history = loadHistory();
-  if (!history.activeSessionId)
-    return void 0;
-  const session = history.sessions.find((s2) => s2.id === history.activeSessionId);
-  if (!session || session.entries.length === 0)
-    return void 0;
-  return session.entries[session.cursor];
-}
-function getActiveSession() {
-  const history = loadHistory();
-  if (!history.activeSessionId) {
-    throw new Error("No active session. Run generate first.");
-  }
-  const session = history.sessions.find((s2) => s2.id === history.activeSessionId);
-  if (!session) {
-    throw new Error("No active session. Run generate first.");
-  }
-  return { history, session };
-}
-function undoHistory() {
-  const { history, session } = getActiveSession();
-  const maxCursor = session.entries.length - 1;
-  if (session.cursor >= maxCursor) {
-    throw new Error("Already at the oldest entry in this session");
-  }
-  session.cursor += 1;
-  saveHistory(history);
-  return {
-    entry: session.entries[session.cursor],
-    position: `${session.cursor + 1}/${session.entries.length}`
-  };
-}
-function redoHistory() {
-  const { history, session } = getActiveSession();
-  if (session.cursor <= 0) {
-    throw new Error("Already at the latest entry");
-  }
-  session.cursor -= 1;
-  saveHistory(history);
-  return {
-    entry: session.entries[session.cursor],
-    position: `${session.cursor + 1}/${session.entries.length}`
-  };
-}
-function switchSession(sessionId) {
-  const history = loadHistory();
-  const session = history.sessions.find((s2) => s2.id === sessionId);
-  if (!session) {
-    throw new Error(`Session not found: ${sessionId}`);
-  }
-  history.activeSessionId = sessionId;
-  saveHistory(history);
-}
-function getHistory() {
-  return loadHistory();
-}
-function clearHistory() {
-  const history = loadHistory();
-  const filePaths = [];
-  for (const session of history.sessions) {
-    for (const entry of session.entries) {
-      filePaths.push(...entry.filePaths);
-    }
-  }
-  history.sessions = [];
-  history.activeSessionId = null;
-  saveHistory(history);
-  return { filePaths };
-}
-function clearSession(sessionId) {
-  const history = loadHistory();
-  const idx = history.sessions.findIndex((s2) => s2.id === sessionId);
-  if (idx === -1)
-    throw new Error(`Session not found: ${sessionId}`);
-  const [removed] = history.sessions.splice(idx, 1);
-  const filePaths = [];
-  for (const entry of removed.entries)
-    filePaths.push(...entry.filePaths);
-  if (history.activeSessionId === sessionId)
-    history.activeSessionId = null;
-  saveHistory(history);
-  return { filePaths };
-}
-function clearGlobalHistory() {
-  const globalPath = join3(globalHistoryDir(), HISTORY_FILE);
-  try {
-    const raw = readFileSync4(globalPath, "utf-8");
-    const history = JSON.parse(raw);
-    const filePaths = [];
-    for (const session of history.sessions) {
-      for (const entry of session.entries)
-        filePaths.push(...entry.filePaths);
-    }
-    const dir = globalHistoryDir();
-    mkdirSync3(dir, { recursive: true });
-    writeFileSync3(globalPath, JSON.stringify(emptyHistory(), null, 2) + "\n", "utf-8");
-    return { filePaths };
-  } catch {
-    return { filePaths: [] };
-  }
-}
-function updateHistoryPaths(oldBase, newBase) {
-  const history = loadHistory();
-  for (const session of history.sessions) {
-    for (const entry of session.entries) {
-      entry.filePaths = entry.filePaths.map((p) => p.startsWith(oldBase) ? newBase + p.slice(oldBase.length) : p);
-      if (entry.inputImage && entry.inputImage.startsWith(oldBase)) {
-        entry.inputImage = newBase + entry.inputImage.slice(oldBase.length);
-      }
-    }
-  }
-  saveHistory(history);
-}
-
 // build/cli/commands/init.js
-import { existsSync as existsSync2, writeFileSync as writeFileSync4 } from "node:fs";
+import { existsSync as existsSync3, writeFileSync as writeFileSync4 } from "node:fs";
 import { resolve as resolve4 } from "node:path";
 
 // build/cli/output.js
@@ -39801,7 +39845,7 @@ var TEMPLATE = {
 };
 function runInit() {
   const filePath = resolve4(".imgxrc");
-  if (existsSync2(filePath)) {
+  if (existsSync3(filePath)) {
     fail(".imgxrc already exists in current directory");
   }
   writeFileSync4(filePath, JSON.stringify(TEMPLATE, null, 2) + "\n", "utf-8");
@@ -39884,7 +39928,7 @@ async function runEdit(provider, args) {
 
 // build/cli/commands/config.js
 import { createInterface } from "node:readline";
-import { existsSync as existsSync3, readdirSync, cpSync, rmSync, mkdirSync as mkdirSync4 } from "node:fs";
+import { existsSync as existsSync4, readdirSync, cpSync, rmSync as rmSync2, mkdirSync as mkdirSync4 } from "node:fs";
 import { resolve as resolve5 } from "node:path";
 import { homedir as homedir4 } from "node:os";
 function extractProvider(args) {
@@ -39997,7 +40041,7 @@ function setOutputDir(newDir, skipConfirm, noMove) {
     success({ key: "output-dir", status: "saved", outputDir: resolvedNew });
     return;
   }
-  if (!existsSync3(oldDir)) {
+  if (!existsSync4(oldDir)) {
     success({ key: "output-dir", status: "saved", outputDir: resolvedNew });
     return;
   }
@@ -40039,7 +40083,7 @@ function setOutputDir(newDir, skipConfirm, noMove) {
 function moveFiles(oldDir, newDir) {
   mkdirSync4(newDir, { recursive: true });
   cpSync(oldDir, newDir, { recursive: true });
-  rmSync(oldDir, { recursive: true, force: true });
+  rmSync2(oldDir, { recursive: true, force: true });
   updateHistoryPaths(oldDir, newDir);
 }
 function getKey(key, provider) {
@@ -40088,8 +40132,8 @@ function showAll() {
 
 // build/cli/commands/history.js
 import { createInterface as createInterface2 } from "node:readline";
-import { rmSync as rmSync2, rmdirSync, existsSync as existsSync4 } from "node:fs";
-import { dirname as dirname3 } from "node:path";
+import { rmSync as rmSync3, rmdirSync, existsSync as existsSync5 } from "node:fs";
+import { dirname as dirname4 } from "node:path";
 function runHistory(args) {
   const sub = args[0];
   if (!sub) {
@@ -40191,10 +40235,10 @@ function deleteSessionFiles(filePaths) {
   const dirs = /* @__PURE__ */ new Set();
   for (const fp of filePaths) {
     try {
-      if (existsSync4(fp)) {
-        rmSync2(fp);
+      if (existsSync5(fp)) {
+        rmSync3(fp);
         count++;
-        dirs.add(dirname3(fp));
+        dirs.add(dirname4(fp));
       }
     } catch {
     }

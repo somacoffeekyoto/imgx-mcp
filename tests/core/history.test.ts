@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdirSync, rmSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { tmpdir } from "node:os";
@@ -27,6 +27,9 @@ import {
   historyDir,
   isManagedPath,
   updateHistoryPaths,
+  getSessionChainNumber,
+  getSessionBaseInfo,
+  setSessionBaseInfo,
 } from "../../src/core/history.js";
 import { resetProjectRootCache } from "../../src/core/config.js";
 
@@ -752,5 +755,185 @@ describe("clearGlobalHistory", () => {
   it("returns empty filePaths when no global history exists", () => {
     const result = clearGlobalHistory();
     expect(result.filePaths).toHaveLength(0);
+  });
+});
+
+describe("splice file deletion on undo-then-edit", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = makeTmpDir();
+    process.env.IMGX_TEST_CONFIG_DIR = tmpDir;
+  });
+
+  afterEach(() => {
+    delete process.env.IMGX_TEST_CONFIG_DIR;
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("deletes files of spliced entries when pushing after undo", () => {
+    // Create real files for the entries
+    const fileDir = join(tmpDir, "images");
+    mkdirSync(fileDir, { recursive: true });
+    const file1 = join(fileDir, "img1.png");
+    const file2 = join(fileDir, "img2.png");
+    const file3 = join(fileDir, "img3.png");
+    writeFileSync(file1, "data1");
+    writeFileSync(file2, "data2");
+    writeFileSync(file3, "data3");
+
+    pushHistory(makeEntry({ prompt: "gen", filePaths: [file1] }), { newSession: true });
+    pushHistory(makeEntry({ prompt: "edit 1", filePaths: [file2] }), { newSession: false });
+    pushHistory(makeEntry({ prompt: "edit 2", filePaths: [file3] }), { newSession: false });
+
+    // Undo to cursor 1 (pointing at "edit 1")
+    const history = loadHistory();
+    history.sessions[0].cursor = 1;
+    saveHistory(history);
+
+    // Push new entry — should splice "edit 2" (index 0) and delete its file
+    pushHistory(makeEntry({ prompt: "new edit", filePaths: [join(fileDir, "img4.png")] }), { newSession: false });
+
+    expect(existsSync(file3)).toBe(false); // spliced entry's file deleted
+    expect(existsSync(file1)).toBe(true);  // kept
+    expect(existsSync(file2)).toBe(true);  // kept
+  });
+
+  it("keeps files of entries that are not spliced", () => {
+    const fileDir = join(tmpDir, "images");
+    mkdirSync(fileDir, { recursive: true });
+    const file1 = join(fileDir, "a.png");
+    const file2 = join(fileDir, "b.png");
+    writeFileSync(file1, "data1");
+    writeFileSync(file2, "data2");
+
+    pushHistory(makeEntry({ prompt: "gen", filePaths: [file1] }), { newSession: true });
+    pushHistory(makeEntry({ prompt: "edit 1", filePaths: [file2] }), { newSession: false });
+
+    // Undo once
+    undoHistory();
+
+    // Push new — splices "edit 1" (file2)
+    pushHistory(makeEntry({ prompt: "new edit", filePaths: [join(fileDir, "c.png")] }), { newSession: false });
+
+    expect(existsSync(file2)).toBe(false); // spliced
+    expect(existsSync(file1)).toBe(true);  // root entry kept
+  });
+});
+
+describe("session baseInfo", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = makeTmpDir();
+    process.env.IMGX_TEST_CONFIG_DIR = tmpDir;
+  });
+
+  afterEach(() => {
+    delete process.env.IMGX_TEST_CONFIG_DIR;
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("records baseName/baseExt/baseDir from entry filePath on new session", () => {
+    pushHistory(
+      makeEntry({ filePaths: ["/output/images/imgx-a1b2c3d4.png"] }),
+      { newSession: true },
+    );
+
+    const history = loadHistory();
+    expect(history.sessions[0].baseName).toBe("imgx-a1b2c3d4");
+    expect(history.sessions[0].baseExt).toBe(".png");
+    expect(history.sessions[0].baseDir).toBe("/output/images");
+  });
+
+  it("records user-specified filename as baseName", () => {
+    pushHistory(
+      makeEntry({ filePaths: ["/my/project/cover.png"] }),
+      { newSession: true },
+    );
+
+    const history = loadHistory();
+    expect(history.sessions[0].baseName).toBe("cover");
+    expect(history.sessions[0].baseExt).toBe(".png");
+    expect(history.sessions[0].baseDir).toBe("/my/project");
+  });
+
+  it("getSessionBaseInfo returns base info for active session", () => {
+    pushHistory(
+      makeEntry({ filePaths: ["/dir/test-image.jpg"] }),
+      { newSession: true },
+    );
+
+    const info = getSessionBaseInfo();
+    expect(info).not.toBeNull();
+    expect(info!.baseName).toBe("test-image");
+    expect(info!.baseExt).toBe(".jpg");
+    expect(info!.baseDir).toBe("/dir");
+  });
+
+  it("getSessionBaseInfo returns null when no active session", () => {
+    expect(getSessionBaseInfo()).toBeNull();
+  });
+
+  it("setSessionBaseInfo updates the active session", () => {
+    pushHistory(makeEntry({ filePaths: ["/a/b.png"] }), { newSession: true });
+
+    setSessionBaseInfo("custom", ".webp", "/new/dir");
+
+    const info = getSessionBaseInfo();
+    expect(info!.baseName).toBe("custom");
+    expect(info!.baseExt).toBe(".webp");
+    expect(info!.baseDir).toBe("/new/dir");
+  });
+});
+
+describe("getSessionChainNumber", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = makeTmpDir();
+    process.env.IMGX_TEST_CONFIG_DIR = tmpDir;
+  });
+
+  afterEach(() => {
+    delete process.env.IMGX_TEST_CONFIG_DIR;
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("returns null when no active session", () => {
+    expect(getSessionChainNumber()).toBeNull();
+  });
+
+  it("returns 1 after first entry (generate)", () => {
+    pushHistory(makeEntry({ prompt: "gen" }), { newSession: true });
+    expect(getSessionChainNumber()).toBe(1);
+  });
+
+  it("returns 2 after second entry (edit)", () => {
+    pushHistory(makeEntry({ prompt: "gen" }), { newSession: true });
+    pushHistory(makeEntry({ prompt: "edit 1" }), { newSession: false });
+    expect(getSessionChainNumber()).toBe(2);
+  });
+
+  it("returns correct count after undo + new edit (splice)", () => {
+    const fileDir = join(tmpDir, "images");
+    mkdirSync(fileDir, { recursive: true });
+    const f1 = join(fileDir, "1.png");
+    const f2 = join(fileDir, "2.png");
+    const f3 = join(fileDir, "3.png");
+    writeFileSync(f1, "d"); writeFileSync(f2, "d"); writeFileSync(f3, "d");
+
+    pushHistory(makeEntry({ filePaths: [f1] }), { newSession: true });
+    pushHistory(makeEntry({ filePaths: [f2] }), { newSession: false });
+    pushHistory(makeEntry({ filePaths: [f3] }), { newSession: false });
+
+    // Undo once (cursor at 1)
+    undoHistory();
+
+    // Push new — splices index 0 (f3), then unshifts new entry
+    pushHistory(makeEntry({ filePaths: [join(fileDir, "4.png")] }), { newSession: false });
+
+    // After splice: [edit1, gen] (2 entries), then unshift → [new, edit1, gen] (3 entries)
+    expect(getSessionChainNumber()).toBe(3);
   });
 });

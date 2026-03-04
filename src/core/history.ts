@@ -1,5 +1,5 @@
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
-import { join, resolve, sep } from "node:path";
+import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from "node:fs";
+import { basename, dirname, extname, join, resolve, sep } from "node:path";
 import { homedir, platform } from "node:os";
 import { randomUUID } from "node:crypto";
 import { findProjectRoot } from "./config.js";
@@ -21,6 +21,9 @@ export interface Session {
   entries: HistoryEntry[];
   cursor: number;
   outputDir?: string;
+  baseName?: string;
+  baseExt?: string;
+  baseDir?: string;
 }
 
 export interface OutputHistory {
@@ -99,6 +102,13 @@ export function pushHistory(
     const session = createSession();
     if (opts.sessionId) session.id = opts.sessionId;
     if (opts.outputDir) session.outputDir = opts.outputDir;
+    if (entry.filePaths.length > 0) {
+      const fp = entry.filePaths[0];
+      const ext = extname(fp);
+      session.baseName = basename(fp, ext);
+      session.baseExt = ext;
+      session.baseDir = dirname(fp);
+    }
     session.entries.push(entry);
     history.sessions.push(session);
     history.activeSessionId = session.id;
@@ -112,7 +122,12 @@ export function pushHistory(
 
   // If cursor > 0 (in undo state), delete entries newer than cursor position
   if (session.cursor > 0) {
-    session.entries.splice(0, session.cursor);
+    const removed = session.entries.splice(0, session.cursor);
+    for (const entry of removed) {
+      for (const fp of entry.filePaths) {
+        try { if (existsSync(fp)) rmSync(fp); } catch { /* skip */ }
+      }
+    }
     session.cursor = 0;
   }
 
@@ -278,5 +293,32 @@ export function updateHistoryPaths(oldBase: string, newBase: string): void {
     }
   }
 
+  saveHistory(history);
+}
+
+export function getSessionChainNumber(): number | null {
+  const history = loadHistory();
+  if (!history.activeSessionId) return null;
+  const session = history.sessions.find((s) => s.id === history.activeSessionId);
+  if (!session || session.entries.length === 0) return null;
+  return session.entries.length;
+}
+
+export function getSessionBaseInfo(): { baseName: string; baseExt: string; baseDir: string } | null {
+  const history = loadHistory();
+  if (!history.activeSessionId) return null;
+  const session = history.sessions.find((s) => s.id === history.activeSessionId);
+  if (!session?.baseName) return null;
+  return { baseName: session.baseName, baseExt: session.baseExt!, baseDir: session.baseDir! };
+}
+
+export function setSessionBaseInfo(baseName: string, baseExt: string, baseDir: string): void {
+  const history = loadHistory();
+  if (!history.activeSessionId) return;
+  const session = history.sessions.find((s) => s.id === history.activeSessionId);
+  if (!session) return;
+  session.baseName = baseName;
+  session.baseExt = baseExt;
+  session.baseDir = baseDir;
   saveHistory(history);
 }

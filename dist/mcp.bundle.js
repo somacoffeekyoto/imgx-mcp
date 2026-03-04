@@ -28935,6 +28935,8 @@ __export(history_exports, {
   getActiveEntry: () => getActiveEntry,
   getActiveSessionOutputDir: () => getActiveSessionOutputDir,
   getHistory: () => getHistory,
+  getSessionBaseInfo: () => getSessionBaseInfo,
+  getSessionChainNumber: () => getSessionChainNumber,
   globalHistoryDir: () => globalHistoryDir,
   historyDir: () => historyDir,
   isManagedPath: () => isManagedPath,
@@ -28942,30 +28944,31 @@ __export(history_exports, {
   pushHistory: () => pushHistory,
   redoHistory: () => redoHistory,
   saveHistory: () => saveHistory,
+  setSessionBaseInfo: () => setSessionBaseInfo,
   switchSession: () => switchSession,
   undoHistory: () => undoHistory,
   updateHistoryPaths: () => updateHistoryPaths
 });
-import { readFileSync as readFileSync4, writeFileSync as writeFileSync3, mkdirSync as mkdirSync3 } from "node:fs";
-import { join as join3, resolve as resolve3, sep } from "node:path";
-import { homedir as homedir3, platform as platform2 } from "node:os";
-import { randomUUID as randomUUID2 } from "node:crypto";
+import { readFileSync as readFileSync2, writeFileSync as writeFileSync2, mkdirSync as mkdirSync2, existsSync as existsSync2, rmSync } from "node:fs";
+import { basename as basename3, dirname as dirname2, extname, join as join2, resolve as resolve2, sep } from "node:path";
+import { homedir as homedir2, platform as platform2 } from "node:os";
+import { randomUUID } from "node:crypto";
 function globalHistoryDir() {
   if (platform2() === "win32") {
-    return join3(process.env.APPDATA || join3(homedir3(), "AppData", "Roaming"), "imgx");
+    return join2(process.env.APPDATA || join2(homedir2(), "AppData", "Roaming"), "imgx");
   }
-  return join3(process.env.XDG_CONFIG_HOME || join3(homedir3(), ".config"), "imgx");
+  return join2(process.env.XDG_CONFIG_HOME || join2(homedir2(), ".config"), "imgx");
 }
 function historyDir() {
   if (process.env.IMGX_TEST_CONFIG_DIR)
     return process.env.IMGX_TEST_CONFIG_DIR;
   const projectRoot = findProjectRoot();
   if (projectRoot)
-    return join3(projectRoot, ".imgx");
+    return join2(projectRoot, ".imgx");
   return globalHistoryDir();
 }
 function historyPath() {
-  return join3(historyDir(), HISTORY_FILE);
+  return join2(historyDir(), HISTORY_FILE);
 }
 function emptyHistory() {
   return {
@@ -28976,7 +28979,7 @@ function emptyHistory() {
 }
 function loadHistory() {
   try {
-    const raw = readFileSync4(historyPath(), "utf-8");
+    const raw = readFileSync2(historyPath(), "utf-8");
     return JSON.parse(raw);
   } catch {
     return emptyHistory();
@@ -28984,12 +28987,12 @@ function loadHistory() {
 }
 function saveHistory(history) {
   const dir = historyDir();
-  mkdirSync3(dir, { recursive: true });
-  writeFileSync3(historyPath(), JSON.stringify(history, null, 2) + "\n", "utf-8");
+  mkdirSync2(dir, { recursive: true });
+  writeFileSync2(historyPath(), JSON.stringify(history, null, 2) + "\n", "utf-8");
 }
 function createSession() {
   return {
-    id: `s-${randomUUID2().slice(0, 8)}`,
+    id: `s-${randomUUID().slice(0, 8)}`,
     entries: [],
     cursor: 0
   };
@@ -29002,6 +29005,13 @@ function pushHistory(entry, opts) {
       session2.id = opts.sessionId;
     if (opts.outputDir)
       session2.outputDir = opts.outputDir;
+    if (entry.filePaths.length > 0) {
+      const fp = entry.filePaths[0];
+      const ext = extname(fp);
+      session2.baseName = basename3(fp, ext);
+      session2.baseExt = ext;
+      session2.baseDir = dirname2(fp);
+    }
     session2.entries.push(entry);
     history.sessions.push(session2);
     history.activeSessionId = session2.id;
@@ -29012,7 +29022,16 @@ function pushHistory(entry, opts) {
   if (!session)
     throw new Error("No active session. Run generate first.");
   if (session.cursor > 0) {
-    session.entries.splice(0, session.cursor);
+    const removed = session.entries.splice(0, session.cursor);
+    for (const entry2 of removed) {
+      for (const fp of entry2.filePaths) {
+        try {
+          if (existsSync2(fp))
+            rmSync(fp);
+        } catch {
+        }
+      }
+    }
     session.cursor = 0;
   }
   session.entries.unshift(entry);
@@ -29114,15 +29133,15 @@ function clearSession(sessionId) {
   return { filePaths };
 }
 function isManagedPath(filePath) {
-  const normalized = resolve3(filePath);
-  const projectManaged = resolve3(historyDir());
-  const globalManaged = resolve3(join3(homedir3(), "Pictures", "imgx"));
+  const normalized = resolve2(filePath);
+  const projectManaged = resolve2(historyDir());
+  const globalManaged = resolve2(join2(homedir2(), "Pictures", "imgx"));
   return normalized.startsWith(projectManaged + sep) || normalized === projectManaged || normalized.startsWith(globalManaged + sep) || normalized === globalManaged;
 }
 function clearGlobalHistory() {
-  const globalPath = join3(globalHistoryDir(), HISTORY_FILE);
+  const globalPath = join2(globalHistoryDir(), HISTORY_FILE);
   try {
-    const raw = readFileSync4(globalPath, "utf-8");
+    const raw = readFileSync2(globalPath, "utf-8");
     const history = JSON.parse(raw);
     const filePaths = [];
     for (const session of history.sessions) {
@@ -29130,8 +29149,8 @@ function clearGlobalHistory() {
         filePaths.push(...entry.filePaths);
     }
     const dir = globalHistoryDir();
-    mkdirSync3(dir, { recursive: true });
-    writeFileSync3(globalPath, JSON.stringify(emptyHistory(), null, 2) + "\n", "utf-8");
+    mkdirSync2(dir, { recursive: true });
+    writeFileSync2(globalPath, JSON.stringify(emptyHistory(), null, 2) + "\n", "utf-8");
     return { filePaths };
   } catch {
     return { filePaths: [] };
@@ -29147,6 +29166,36 @@ function updateHistoryPaths(oldBase, newBase) {
       }
     }
   }
+  saveHistory(history);
+}
+function getSessionChainNumber() {
+  const history = loadHistory();
+  if (!history.activeSessionId)
+    return null;
+  const session = history.sessions.find((s2) => s2.id === history.activeSessionId);
+  if (!session || session.entries.length === 0)
+    return null;
+  return session.entries.length;
+}
+function getSessionBaseInfo() {
+  const history = loadHistory();
+  if (!history.activeSessionId)
+    return null;
+  const session = history.sessions.find((s2) => s2.id === history.activeSessionId);
+  if (!session?.baseName)
+    return null;
+  return { baseName: session.baseName, baseExt: session.baseExt, baseDir: session.baseDir };
+}
+function setSessionBaseInfo(baseName, baseExt, baseDir) {
+  const history = loadHistory();
+  if (!history.activeSessionId)
+    return;
+  const session = history.sessions.find((s2) => s2.id === history.activeSessionId);
+  if (!session)
+    return;
+  session.baseName = baseName;
+  session.baseExt = baseExt;
+  session.baseDir = baseDir;
   saveHistory(history);
 }
 var HISTORY_FILE;
@@ -69542,10 +69591,11 @@ function getApiKeyFromEnv() {
 
 // build/core/storage.js
 init_config();
-import { readFileSync as readFileSync2, writeFileSync as writeFileSync2, mkdirSync as mkdirSync2 } from "node:fs";
-import { dirname as dirname2, join as join2, resolve as resolve2 } from "node:path";
-import { randomUUID } from "node:crypto";
-import { homedir as homedir2 } from "node:os";
+init_history();
+import { readFileSync as readFileSync3, writeFileSync as writeFileSync3, mkdirSync as mkdirSync3 } from "node:fs";
+import { dirname as dirname3, join as join3, resolve as resolve3 } from "node:path";
+import { randomUUID as randomUUID2 } from "node:crypto";
+import { homedir as homedir3 } from "node:os";
 var MIME_TO_EXT = {
   "image/png": ".png",
   "image/jpeg": ".jpg",
@@ -69553,7 +69603,7 @@ var MIME_TO_EXT = {
 };
 function readImageAsBase64(filePath) {
   const absPath = resolveProjectPath(filePath);
-  const buffer = readFileSync2(absPath);
+  const buffer = readFileSync3(absPath);
   const ext = filePath.split(".").pop()?.toLowerCase();
   const mimeType = ext === "jpg" || ext === "jpeg" ? "image/jpeg" : ext === "webp" ? "image/webp" : "image/png";
   return { data: buffer.toString("base64"), mimeType };
@@ -69566,21 +69616,29 @@ function fallbackOutputDir(outputDir) {
     return resolveProjectPath(configured);
   const projectRoot = findProjectRoot();
   if (projectRoot)
-    return join2(projectRoot, ".imgx");
-  return join2(homedir2(), "Pictures", "imgx");
+    return join3(projectRoot, ".imgx");
+  return join3(homedir3(), "Pictures", "imgx");
 }
-function saveImage(image, outputPath, outputDir, sessionId) {
+function saveImage(image, outputPath, outputDir, sessionId, isChained) {
   const ext = MIME_TO_EXT[image.mimeType] || ".png";
   let filePath;
-  if (outputPath) {
+  if (isChained) {
+    const baseInfo = getSessionBaseInfo();
+    const chainNum = getSessionChainNumber();
+    if (baseInfo && chainNum !== null) {
+      filePath = resolve3(baseInfo.baseDir, `${baseInfo.baseName}-${chainNum}${baseInfo.baseExt}`);
+    } else {
+      filePath = resolve3(fallbackOutputDir(outputDir), sessionId || "", `imgx-${randomUUID2().slice(0, 8)}${ext}`);
+    }
+  } else if (outputPath) {
     filePath = resolveProjectPath(outputPath);
   } else {
     const baseDir = fallbackOutputDir(outputDir);
-    const targetDir = sessionId ? join2(baseDir, sessionId) : baseDir;
-    filePath = resolve2(targetDir, `imgx-${randomUUID().slice(0, 8)}${ext}`);
+    const targetDir = sessionId ? join3(baseDir, sessionId) : baseDir;
+    filePath = resolve3(targetDir, `imgx-${randomUUID2().slice(0, 8)}${ext}`);
   }
-  mkdirSync2(dirname2(filePath), { recursive: true });
-  writeFileSync2(filePath, image.data);
+  mkdirSync3(dirname3(filePath), { recursive: true });
+  writeFileSync3(filePath, image.data);
   return filePath;
 }
 
@@ -69719,7 +69777,7 @@ init_config();
 
 // build/providers/openai/client.js
 init_config();
-import { readFileSync as readFileSync3 } from "node:fs";
+import { readFileSync as readFileSync4 } from "node:fs";
 
 // build/providers/openai/capabilities.js
 var OPENAI_PROVIDER_INFO = {
@@ -69833,7 +69891,7 @@ var OpenAIProvider = class {
   async edit(input, model) {
     const modelName = model || this.info.defaultModel;
     const absPath = resolveProjectPath(input.inputImage);
-    const imageBuffer = readFileSync3(absPath);
+    const imageBuffer = readFileSync4(absPath);
     const ext = absPath.split(".").pop()?.toLowerCase();
     const contentType = ext === "jpg" || ext === "jpeg" ? "image/jpeg" : ext === "webp" ? "image/webp" : "image/png";
     const fields = {
@@ -70060,7 +70118,7 @@ server.tool("edit_last", "Edit the last generated/edited image with new text ins
     }
     const sessionId = loadHistory().activeSessionId;
     const sessionOutputDir = args.output_dir || getActiveSessionOutputDir();
-    const saved = saveImage(result.images[0], args.output, sessionOutputDir, sessionId || void 0);
+    const saved = saveImage(result.images[0], args.output, sessionOutputDir, sessionId || void 0, true);
     pushHistory({
       filePaths: [saved],
       prompt: args.prompt,
@@ -70142,8 +70200,8 @@ server.tool("clear_history", "Clear edit history for the current project. Files 
     let filesDeleted = 0;
     let skippedFiles = 0;
     if (args.delete_files) {
-      const { existsSync: existsSync2, rmSync, rmdirSync } = await import("node:fs");
-      const { dirname: dirname3 } = await import("node:path");
+      const { existsSync: existsSync3, rmSync: rmSync2, rmdirSync } = await import("node:fs");
+      const { dirname: dirname4 } = await import("node:path");
       const dirs = /* @__PURE__ */ new Set();
       for (const fp of result.filePaths) {
         if (!isManagedPath(fp)) {
@@ -70151,10 +70209,10 @@ server.tool("clear_history", "Clear edit history for the current project. Files 
           continue;
         }
         try {
-          if (existsSync2(fp)) {
-            rmSync(fp);
+          if (existsSync3(fp)) {
+            rmSync2(fp);
             filesDeleted++;
-            dirs.add(dirname3(fp));
+            dirs.add(dirname4(fp));
           }
         } catch {
         }
@@ -70187,11 +70245,11 @@ server.tool("set_output_dir", "Change the default output directory for generated
     config2.defaults.outputDir = args.path;
     saveConfig2(config2);
     if (args.move_files && oldDir !== args.path) {
-      const { mkdirSync: mkdirSync4, cpSync, rmSync, existsSync: existsSync2 } = await import("node:fs");
-      if (existsSync2(oldDir)) {
+      const { mkdirSync: mkdirSync4, cpSync, rmSync: rmSync2, existsSync: existsSync3 } = await import("node:fs");
+      if (existsSync3(oldDir)) {
         mkdirSync4(args.path, { recursive: true });
         cpSync(oldDir, args.path, { recursive: true });
-        rmSync(oldDir, { recursive: true, force: true });
+        rmSync2(oldDir, { recursive: true, force: true });
         updateHistoryPaths2(oldDir, args.path);
       }
     }

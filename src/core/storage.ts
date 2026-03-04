@@ -1,9 +1,10 @@
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { basename, dirname, extname, join, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 import { homedir } from "node:os";
 import type { GeneratedImage } from "./types.js";
 import { resolveDefault, resolveProjectPath, findProjectRoot } from "./config.js";
+import { getSessionBaseInfo, getSessionChainNumber } from "./history.js";
 
 const MIME_TO_EXT: Record<string, string> = {
   "image/png": ".png",
@@ -42,12 +43,25 @@ export function saveImage(
   image: GeneratedImage,
   outputPath?: string,
   outputDir?: string,
-  sessionId?: string
+  sessionId?: string,
+  isChained?: boolean,
 ): string {
   const ext = MIME_TO_EXT[image.mimeType] || ".png";
-
   let filePath: string;
-  if (outputPath) {
+
+  if (isChained) {
+    const baseInfo = getSessionBaseInfo();
+    const chainNum = getSessionChainNumber();
+    if (baseInfo && chainNum !== null) {
+      filePath = resolve(baseInfo.baseDir, `${baseInfo.baseName}-${chainNum}${baseInfo.baseExt}`);
+    } else {
+      filePath = resolve(
+        fallbackOutputDir(outputDir),
+        sessionId || "",
+        `imgx-${randomUUID().slice(0, 8)}${ext}`,
+      );
+    }
+  } else if (outputPath) {
     filePath = resolveProjectPath(outputPath);
   } else {
     const baseDir = fallbackOutputDir(outputDir);
