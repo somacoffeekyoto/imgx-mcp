@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.1 (2026-03-04)
+
+### Added
+
+- **`CLAUDE.md`** — Project instructions for Claude Code (release flow reference, dev commands, architecture overview, project config)
+- **`RELEASING.md` full rewrite** — 4-step checklist expanded to 11-step mandatory release flow covering test, version update, build, publish, MCP verification, app-division-ops docs, and public distribution
+
+### Fixed
+
+- **Plugin/registry version sync** — `server.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `.cursor-plugin/plugin.json` were stuck at v1.0.4; now updated to match the actual release version
+
 ## 1.1.0 (2026-03-04)
 
 ### Added

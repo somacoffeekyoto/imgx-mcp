@@ -69882,7 +69882,7 @@ function buildImageContent(images, paths, extra) {
 }
 var server = new McpServer({
   name: "imgx",
-  version: "1.1.0"
+  version: "1.1.1"
 });
 initGemini();
 initOpenAI();
