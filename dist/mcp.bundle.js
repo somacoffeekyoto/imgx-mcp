@@ -6819,14 +6819,21 @@ __export(config_exports, {
   resolveApiKey: () => resolveApiKey,
   resolveDefault: () => resolveDefault,
   resolveProjectPath: () => resolveProjectPath,
-  saveConfig: () => saveConfig
+  saveConfig: () => saveConfig,
+  setProjectRoot: () => setProjectRoot
 });
 import { readFileSync, writeFileSync, mkdirSync, chmodSync, existsSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { homedir, platform } from "node:os";
+function setProjectRoot(root) {
+  _mcpRoot = root;
+  _cachedProjectRoot = void 0;
+}
 function findProjectRoot(startDir) {
   if (process.env.IMGX_PROJECT_ROOT)
     return process.env.IMGX_PROJECT_ROOT;
+  if (_mcpRoot)
+    return _mcpRoot;
   if (_cachedProjectRoot !== void 0)
     return _cachedProjectRoot;
   let dir = resolve(startDir ?? process.cwd());
@@ -6845,6 +6852,7 @@ function findProjectRoot(startDir) {
 }
 function resetProjectRootCache() {
   _cachedProjectRoot = void 0;
+  _mcpRoot = null;
 }
 function resolveProjectPath(relativePath) {
   if (isAbsolute(relativePath))
@@ -6919,10 +6927,11 @@ function resolveDefault(key) {
 function getConfigPath() {
   return configPath();
 }
-var _cachedProjectRoot;
+var _cachedProjectRoot, _mcpRoot;
 var init_config = __esm({
   "build/core/config.js"() {
     "use strict";
+    _mcpRoot = null;
   }
 });
 
@@ -69531,7 +69540,10 @@ function fallbackOutputDir(outputDir) {
     return resolveProjectPath(outputDir);
   const configured = resolveDefault("outputDir");
   if (configured)
-    return configured;
+    return resolveProjectPath(configured);
+  const projectRoot = findProjectRoot();
+  if (projectRoot)
+    return join2(projectRoot, ".imgx");
   return join2(homedir2(), "Pictures", "imgx");
 }
 function saveImage(image, outputPath, outputDir, sessionId) {
@@ -69871,7 +69883,9 @@ function initOpenAI() {
 
 // build/mcp/server.js
 init_history();
+init_config();
 import { randomUUID as randomUUID3 } from "node:crypto";
+import { fileURLToPath } from "node:url";
 function buildImageContent(images, paths, extra) {
   const content = [];
   for (const img of images) {
@@ -69882,7 +69896,7 @@ function buildImageContent(images, paths, extra) {
 }
 var server = new McpServer({
   name: "imgx",
-  version: "1.1.1"
+  version: "1.2.0"
 });
 initGemini();
 initOpenAI();
@@ -70174,9 +70188,27 @@ server.tool("list_providers", "List available image providers and their capabili
     content: [{ type: "text", text: JSON.stringify({ providers: data }) }]
   };
 });
+function fileUriToPath(uri) {
+  try {
+    return fileURLToPath(uri);
+  } catch {
+    const stripped = uri.replace(/^file:\/\/\//, "");
+    return decodeURIComponent(stripped);
+  }
+}
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
+  try {
+    const result = await server.server.listRoots();
+    if (result.roots.length > 0) {
+      const rootUri = result.roots[0].uri;
+      if (rootUri.startsWith("file://")) {
+        setProjectRoot(fileUriToPath(rootUri));
+      }
+    }
+  } catch {
+  }
 }
 main().catch((err) => {
   console.error("MCP server error:", err);

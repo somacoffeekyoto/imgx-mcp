@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.2.0 (2026-03-04)
+
+### Added
+
+- **MCP roots-based project detection** — MCP server now calls `listRoots()` after connection to get the client's workspace directory, making project-scoped history work without `.imgxrc` when used via Claude Code and other MCP clients
+- **`setProjectRoot()` API** — allows MCP server (or other integrations) to set the project root programmatically
+- **Project-scoped default output** — when a project root is detected, default output directory is `<project-root>/.imgx/` instead of `~/Pictures/imgx`
+- 5 new tests for MCP root detection and project-scoped default output (total: 59 tests)
+
+### Changed
+
+- **Project root resolution priority** — `IMGX_PROJECT_ROOT` env var > MCP roots (`setProjectRoot`) > `.imgxrc` upward search (CLI fallback)
+- **`fallbackOutputDir()`** — configured `outputDir` is now resolved via `resolveProjectPath()` for correct relative path handling
+- **`resetProjectRootCache()`** — now also clears the MCP root value
+
 ## 1.1.1 (2026-03-04)
 
 ### Added

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdirSync, rmSync, existsSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { saveImage, readImageAsBase64 } from "../../src/core/storage.js";
-import { resetProjectRootCache } from "../../src/core/config.js";
+import { resetProjectRootCache, setProjectRoot } from "../../src/core/config.js";
 
 const TEST_OUTPUT_DIR = join(process.cwd(), "tests", ".tmp-output");
 
@@ -78,6 +78,45 @@ describe("saveImage with project path resolution", () => {
     const image = { data: Buffer.from("PNG"), mimeType: "image/png" };
     const path = saveImage(image, undefined, "output-images");
     expect(path).toContain(join(projectDir, "output-images"));
+    expect(existsSync(path)).toBe(true);
+  });
+});
+
+describe("saveImage default output with project root", () => {
+  let projectDir: string;
+  const origEnv = process.env.IMGX_PROJECT_ROOT;
+
+  beforeEach(() => {
+    projectDir = join(process.cwd(), "tests", ".tmp-project-default");
+    mkdirSync(projectDir, { recursive: true });
+    delete process.env.IMGX_PROJECT_ROOT;
+    resetProjectRootCache();
+  });
+
+  afterEach(() => {
+    if (origEnv !== undefined) {
+      process.env.IMGX_PROJECT_ROOT = origEnv;
+    } else {
+      delete process.env.IMGX_PROJECT_ROOT;
+    }
+    resetProjectRootCache();
+    rmSync(projectDir, { recursive: true, force: true });
+  });
+
+  it("uses <project-root>/.imgx as default output when project root is set via MCP", () => {
+    setProjectRoot(projectDir);
+    const image = { data: Buffer.from("PNG"), mimeType: "image/png" };
+    const path = saveImage(image, undefined, undefined, "s-mcptest1");
+    expect(path).toContain(join(projectDir, ".imgx"));
+    expect(existsSync(path)).toBe(true);
+  });
+
+  it("uses <project-root>/.imgx as default output when project root is set via env", () => {
+    process.env.IMGX_PROJECT_ROOT = projectDir;
+    resetProjectRootCache();
+    const image = { data: Buffer.from("PNG"), mimeType: "image/png" };
+    const path = saveImage(image, undefined, undefined, "s-envtest1");
+    expect(path).toContain(join(projectDir, ".imgx"));
     expect(existsSync(path)).toBe(true);
   });
 });

@@ -3,7 +3,7 @@ import { dirname, join, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 import { homedir } from "node:os";
 import type { GeneratedImage } from "./types.js";
-import { resolveDefault, resolveProjectPath } from "./config.js";
+import { resolveDefault, resolveProjectPath, findProjectRoot } from "./config.js";
 
 const MIME_TO_EXT: Record<string, string> = {
   "image/png": ".png",
@@ -28,11 +28,13 @@ export function readImageAsBase64(filePath: string): {
   return { data: buffer.toString("base64"), mimeType };
 }
 
-/** Resolve output directory: explicit arg → env/config → ~/Pictures/imgx */
+/** Resolve output directory: explicit arg → env/config → project .imgx → ~/Pictures/imgx */
 function fallbackOutputDir(outputDir?: string): string {
   if (outputDir) return resolveProjectPath(outputDir);
   const configured = resolveDefault("outputDir");
-  if (configured) return configured;
+  if (configured) return resolveProjectPath(configured);
+  const projectRoot = findProjectRoot();
+  if (projectRoot) return join(projectRoot, ".imgx");
   return join(homedir(), "Pictures", "imgx");
 }
 

@@ -22052,9 +22052,12 @@ import { readFileSync, writeFileSync, mkdirSync, chmodSync, existsSync } from "n
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { homedir, platform } from "node:os";
 var _cachedProjectRoot;
+var _mcpRoot = null;
 function findProjectRoot(startDir) {
   if (process.env.IMGX_PROJECT_ROOT)
     return process.env.IMGX_PROJECT_ROOT;
+  if (_mcpRoot)
+    return _mcpRoot;
   if (_cachedProjectRoot !== void 0)
     return _cachedProjectRoot;
   let dir = resolve(startDir ?? process.cwd());
@@ -39244,7 +39247,10 @@ function fallbackOutputDir(outputDir) {
     return resolveProjectPath(outputDir);
   const configured = resolveDefault("outputDir");
   if (configured)
-    return configured;
+    return resolveProjectPath(configured);
+  const projectRoot = findProjectRoot();
+  if (projectRoot)
+    return join2(projectRoot, ".imgx");
   return join2(homedir2(), "Pictures", "imgx");
 }
 function saveImage(image, outputPath, outputDir, sessionId) {
@@ -40213,7 +40219,7 @@ function runRedo() {
 }
 
 // build/cli/index.js
-var VERSION2 = "1.1.1";
+var VERSION2 = "1.2.0";
 var HELP = `imgx v${VERSION2} \u2014 AI image generation and editing for MCP-compatible AI agents
 
 Commands:

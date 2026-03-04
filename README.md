@@ -100,7 +100,7 @@ The skill guides Claude Code through image workflows: blog covers, iterative edi
 | `set_output_dir` | Change the default output directory (optionally move existing files) |
 | `list_providers` | List available providers and capabilities |
 
-Images are saved to `~/Pictures/imgx/<session-id>/` by default. Each session gets its own directory. File paths are returned in the response. Inline image preview is included in MCP responses (base64).
+Images are saved to `<project-root>/.imgx/<session-id>/` when a project root is detected, or `~/Pictures/imgx/<session-id>/` otherwise. Each session gets its own directory. File paths are returned in the response. Inline image preview is included in MCP responses (base64).
 
 ### Iterative editing
 
@@ -377,7 +377,7 @@ Or create manually:
 
 Project config is shared via Git. Do not put API keys in `.imgxrc`.
 
-When `.imgxrc` is present, imgx-mcp treats that directory as the project root. History is saved to `<project-root>/.imgx/output-history.json` (project-scoped, not shared with other projects). Relative paths in `output` and `output_dir` are resolved against the project root instead of the MCP server's working directory.
+When used via MCP (Claude Code, etc.), imgx-mcp automatically detects the project root from the client's workspace via MCP roots. When `.imgxrc` is present, that directory is used as the project root (CLI fallback). You can also set `IMGX_PROJECT_ROOT` environment variable explicitly. History is saved to `<project-root>/.imgx/output-history.json` (project-scoped, not shared with other projects). Default image output goes to `<project-root>/.imgx/<session-id>/`. Relative paths in `output` and `output_dir` are resolved against the project root instead of the MCP server's working directory.
 
 ### Settings resolution
 

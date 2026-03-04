@@ -17,10 +17,21 @@ export interface ImgxConfig {
 }
 
 let _cachedProjectRoot: string | null | undefined; // undefined = not searched
+let _mcpRoot: string | null = null;
+
+/** Set the project root from MCP roots (called by MCP server after listRoots) */
+export function setProjectRoot(root: string): void {
+  _mcpRoot = root;
+  _cachedProjectRoot = undefined; // invalidate cache so findProjectRoot re-evaluates
+}
 
 /** Find the nearest ancestor directory containing .imgxrc */
 export function findProjectRoot(startDir?: string): string | null {
+  // 1. Explicit env var
   if (process.env.IMGX_PROJECT_ROOT) return process.env.IMGX_PROJECT_ROOT;
+  // 2. MCP roots (set via setProjectRoot)
+  if (_mcpRoot) return _mcpRoot;
+  // 3. .imgxrc upward search (CLI fallback)
   if (_cachedProjectRoot !== undefined) return _cachedProjectRoot;
   let dir = resolve(startDir ?? process.cwd());
   while (true) {
@@ -39,6 +50,7 @@ export function findProjectRoot(startDir?: string): string | null {
 /** Reset the cached project root (for testing) */
 export function resetProjectRootCache(): void {
   _cachedProjectRoot = undefined;
+  _mcpRoot = null;
 }
 
 /** Resolve a relative path against the project root, or CWD if no project */

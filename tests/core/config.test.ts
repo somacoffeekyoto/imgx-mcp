@@ -8,6 +8,7 @@ import {
   resolveProjectPath,
   loadProjectConfig,
   resetProjectRootCache,
+  setProjectRoot,
 } from "../../src/core/config.js";
 
 function makeTmpDir(): string {
@@ -77,6 +78,58 @@ describe("findProjectRoot", () => {
     findProjectRoot(tmpDir);
     resetProjectRootCache();
     rmSync(join(tmpDir, ".imgxrc"));
+    const result = findProjectRoot(tmpDir);
+    expect(result).toBeNull();
+  });
+});
+
+describe("setProjectRoot (MCP roots)", () => {
+  let tmpDir: string;
+  const origEnv = process.env.IMGX_PROJECT_ROOT;
+
+  beforeEach(() => {
+    tmpDir = makeTmpDir();
+    delete process.env.IMGX_PROJECT_ROOT;
+    resetProjectRootCache();
+  });
+
+  afterEach(() => {
+    if (origEnv !== undefined) {
+      process.env.IMGX_PROJECT_ROOT = origEnv;
+    } else {
+      delete process.env.IMGX_PROJECT_ROOT;
+    }
+    resetProjectRootCache();
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("overrides .imgxrc detection", () => {
+    // Create .imgxrc in tmpDir
+    writeFileSync(join(tmpDir, ".imgxrc"), "{}");
+    const mcpRoot = join(tmpDir, "mcp-workspace");
+    mkdirSync(mcpRoot, { recursive: true });
+
+    setProjectRoot(mcpRoot);
+    const result = findProjectRoot(tmpDir);
+    expect(result).toBe(mcpRoot);
+  });
+
+  it("is overridden by IMGX_PROJECT_ROOT env var", () => {
+    const mcpRoot = join(tmpDir, "mcp-workspace");
+    mkdirSync(mcpRoot, { recursive: true });
+    setProjectRoot(mcpRoot);
+
+    process.env.IMGX_PROJECT_ROOT = "/env/override";
+    const result = findProjectRoot();
+    expect(result).toBe("/env/override");
+  });
+
+  it("is cleared by resetProjectRootCache", () => {
+    setProjectRoot(tmpDir);
+    expect(findProjectRoot()).toBe(tmpDir);
+
+    resetProjectRootCache();
+    // No .imgxrc, no env, no MCP root → null
     const result = findProjectRoot(tmpDir);
     expect(result).toBeNull();
   });

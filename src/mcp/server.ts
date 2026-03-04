@@ -17,7 +17,9 @@ import {
   clearHistory,
 } from "../core/history.js";
 import { randomUUID } from "node:crypto";
+import { fileURLToPath } from "node:url";
 import type { GenerateInput, EditInput, GeneratedImage } from "../core/types.js";
+import { setProjectRoot } from "../core/config.js";
 
 /** Build MCP content array with image previews + file path info */
 function buildImageContent(
@@ -35,7 +37,7 @@ function buildImageContent(
 
 const server = new McpServer({
   name: "imgx",
-  version: "1.1.1",
+  version: "1.2.0",
 });
 
 // プロバイダ初期化
@@ -410,9 +412,33 @@ server.tool(
 
 // --- 起動 ---
 
+/** Convert a file:// URI to a local filesystem path */
+function fileUriToPath(uri: string): string {
+  try {
+    return fileURLToPath(uri);
+  } catch {
+    // Fallback: strip file:/// prefix manually
+    const stripped = uri.replace(/^file:\/\/\//, "");
+    return decodeURIComponent(stripped);
+  }
+}
+
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
+
+  // Attempt to get workspace roots from the MCP client
+  try {
+    const result = await server.server.listRoots();
+    if (result.roots.length > 0) {
+      const rootUri = result.roots[0].uri;
+      if (rootUri.startsWith("file://")) {
+        setProjectRoot(fileUriToPath(rootUri));
+      }
+    }
+  } catch {
+    // Client does not support roots — fall back to .imgxrc detection
+  }
 }
 
 main().catch((err) => {
