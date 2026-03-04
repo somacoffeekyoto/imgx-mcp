@@ -438,7 +438,9 @@ Delete the `image-generation/` directory from `.claude/skills/` or `~/.claude/sk
 npm uninstall -g imgx-mcp
 ```
 
-### Clean up configuration (optional)
+`npm uninstall` removes the package but does not delete configuration or generated files. Remove them manually if needed:
+
+**Global configuration:**
 
 ```bash
 # Linux / macOS
@@ -446,6 +448,12 @@ rm -rf ~/.config/imgx/
 
 # Windows (PowerShell)
 Remove-Item -Recurse -Force "$env:APPDATA\imgx"
+```
+
+**Project history and images:** Each project may have a `.imgx/` directory containing edit history and generated images. Remove it from each project as needed.
+
+```bash
+rm -rf <project-root>/.imgx/
 ```
 
 ## License

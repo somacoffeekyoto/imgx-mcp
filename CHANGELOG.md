@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.3.0 (2026-03-04)
+
+### Added
+
+- **Session-based `clear_history`** — MCP `clear_history` tool accepts optional `session_id` parameter to clear a single session instead of all sessions
+- **Managed path protection** — MCP `clear_history` with `delete_files` only deletes files inside managed directories (`.imgx/` or `~/Pictures/imgx/`); files saved to custom output paths are never deleted
+- **`clearSession()` API** — new function to remove a single session from history
+- **`isManagedPath()` API** — determines whether a file path is inside a managed directory
+- **CLI `history clear <session-id>`** — clear a specific session from CLI (errors on `--all` + session ID combo)
+- **Uninstall cleanup documentation** — README uninstall section now documents data that `npm uninstall` does not remove
+- 7 new tests for `clearSession` and `isManagedPath` (total: 66 tests)
+
+### Changed
+
+- **`historyDir()` exported** — previously private, now available for managed path detection
+- **MCP `clear_history` response** — now includes `skippedFiles` count for files outside managed directories
+
 ## 1.2.0 (2026-03-04)
 
 ### Added

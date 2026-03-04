@@ -21,8 +21,11 @@ import {
   switchSession,
   getHistory,
   clearHistory,
+  clearSession,
   clearGlobalHistory,
   globalHistoryDir,
+  historyDir,
+  isManagedPath,
   updateHistoryPaths,
 } from "../../src/core/history.js";
 import { resetProjectRootCache } from "../../src/core/config.js";
@@ -653,6 +656,83 @@ describe("project-scoped history", () => {
 
     // Clean up
     rmSync(otherProject, { recursive: true, force: true });
+  });
+});
+
+describe("clearSession", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = makeTmpDir();
+    process.env.IMGX_TEST_CONFIG_DIR = tmpDir;
+  });
+
+  afterEach(() => {
+    delete process.env.IMGX_TEST_CONFIG_DIR;
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("removes only the specified session, keeps others", () => {
+    const id1 = pushHistory(makeEntry({ prompt: "session 1" }), { newSession: true });
+    const id2 = pushHistory(makeEntry({ prompt: "session 2" }), { newSession: true });
+
+    clearSession(id1);
+
+    const history = loadHistory();
+    expect(history.sessions).toHaveLength(1);
+    expect(history.sessions[0].id).toBe(id2);
+  });
+
+  it("sets activeSessionId to null when clearing the active session", () => {
+    const id1 = pushHistory(makeEntry({ prompt: "session 1" }), { newSession: true });
+
+    expect(loadHistory().activeSessionId).toBe(id1);
+    clearSession(id1);
+    expect(loadHistory().activeSessionId).toBeNull();
+  });
+
+  it("preserves activeSessionId when clearing a non-active session", () => {
+    const id1 = pushHistory(makeEntry({ prompt: "session 1" }), { newSession: true });
+    const id2 = pushHistory(makeEntry({ prompt: "session 2" }), { newSession: true });
+
+    expect(loadHistory().activeSessionId).toBe(id2);
+    clearSession(id1);
+    expect(loadHistory().activeSessionId).toBe(id2);
+  });
+
+  it("throws for non-existent session ID", () => {
+    pushHistory(makeEntry(), { newSession: true });
+    expect(() => clearSession("s-nonexist")).toThrow("Session not found: s-nonexist");
+  });
+});
+
+describe("isManagedPath", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = makeTmpDir();
+    process.env.IMGX_TEST_CONFIG_DIR = tmpDir;
+  });
+
+  afterEach(() => {
+    delete process.env.IMGX_TEST_CONFIG_DIR;
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("returns true for paths inside managed .imgx directory", () => {
+    const managed = join(tmpDir, "s-abc12345", "image.png");
+    expect(isManagedPath(managed)).toBe(true);
+  });
+
+  it("returns true for paths inside ~/Pictures/imgx", () => {
+    const { homedir } = require("node:os");
+    const globalManaged = join(homedir(), "Pictures", "imgx", "s-abc12345", "image.png");
+    expect(isManagedPath(globalManaged)).toBe(true);
+  });
+
+  it("returns false for custom output paths", () => {
+    expect(isManagedPath("/tmp/content/images/cover.png")).toBe(false);
+    expect(isManagedPath("C:\\Users\\test\\content\\images\\cover.png")).toBe(false);
   });
 });
 

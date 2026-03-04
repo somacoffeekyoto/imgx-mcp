@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve, sep } from "node:path";
 import { homedir, platform } from "node:os";
 import { randomUUID } from "node:crypto";
 import { findProjectRoot } from "./config.js";
@@ -45,7 +45,7 @@ export function globalHistoryDir(): string {
   return join(process.env.XDG_CONFIG_HOME || join(homedir(), ".config"), "imgx");
 }
 
-function historyDir(): string {
+export function historyDir(): string {
   if (process.env.IMGX_TEST_CONFIG_DIR) return process.env.IMGX_TEST_CONFIG_DIR;
   const projectRoot = findProjectRoot();
   if (projectRoot) return join(projectRoot, ".imgx");
@@ -220,6 +220,30 @@ export function clearHistory(): { filePaths: string[] } {
   saveHistory(history);
 
   return { filePaths };
+}
+
+export function clearSession(sessionId: string): { filePaths: string[] } {
+  const history = loadHistory();
+  const idx = history.sessions.findIndex((s) => s.id === sessionId);
+  if (idx === -1) throw new Error(`Session not found: ${sessionId}`);
+  const [removed] = history.sessions.splice(idx, 1);
+  const filePaths: string[] = [];
+  for (const entry of removed.entries) filePaths.push(...entry.filePaths);
+  if (history.activeSessionId === sessionId) history.activeSessionId = null;
+  saveHistory(history);
+  return { filePaths };
+}
+
+export function isManagedPath(filePath: string): boolean {
+  const normalized = resolve(filePath);
+  const projectManaged = resolve(historyDir());
+  const globalManaged = resolve(join(homedir(), "Pictures", "imgx"));
+  return (
+    normalized.startsWith(projectManaged + sep) ||
+    normalized === projectManaged ||
+    normalized.startsWith(globalManaged + sep) ||
+    normalized === globalManaged
+  );
 }
 
 export function clearGlobalHistory(): { filePaths: string[] } {

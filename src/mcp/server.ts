@@ -15,6 +15,8 @@ import {
   getHistory,
   switchSession,
   clearHistory,
+  clearSession,
+  isManagedPath,
 } from "../core/history.js";
 import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
@@ -37,7 +39,7 @@ function buildImageContent(
 
 const server = new McpServer({
   name: "imgx",
-  version: "1.2.0",
+  version: "1.3.0",
 });
 
 // プロバイダ初期化
@@ -320,17 +322,24 @@ server.tool(
 // --- clear_history ---
 server.tool(
   "clear_history",
-  "Clear edit history for the current project. Optionally delete image files.",
-  { delete_files: z.boolean().optional().default(false).describe("Delete image files in session directories") },
+  "Clear edit history for the current project. Files saved to custom output paths are never deleted — only files in managed directories (.imgx/ or ~/Pictures/imgx/).",
+  {
+    session_id: z.string().optional().describe("Session ID to clear. Omit to clear all sessions."),
+    delete_files: z.boolean().optional().default(false).describe("Delete image files in managed directories only"),
+  },
   async (args) => {
     try {
-      const result = clearHistory();
+      const result = args.session_id
+        ? clearSession(args.session_id)
+        : clearHistory();
       let filesDeleted = 0;
+      let skippedFiles = 0;
       if (args.delete_files) {
         const { existsSync, rmSync, rmdirSync } = await import("node:fs");
         const { dirname } = await import("node:path");
         const dirs = new Set<string>();
         for (const fp of result.filePaths) {
+          if (!isManagedPath(fp)) { skippedFiles++; continue; }
           try {
             if (existsSync(fp)) { rmSync(fp); filesDeleted++; dirs.add(dirname(fp)); }
           } catch { /* skip */ }
@@ -339,7 +348,7 @@ server.tool(
           try { rmdirSync(dir); } catch { /* non-empty or missing */ }
         }
       }
-      return { content: [{ type: "text", text: JSON.stringify({ success: true, cleared: true, filesDeleted }) }] };
+      return { content: [{ type: "text", text: JSON.stringify({ success: true, cleared: true, filesDeleted, skippedFiles }) }] };
     } catch (err) {
       return { content: [{ type: "text", text: `Error: ${err instanceof Error ? err.message : String(err)}` }] };
     }

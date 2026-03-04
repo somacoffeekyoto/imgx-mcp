@@ -89,6 +89,8 @@ Then restart the MCP server in Claude Code and verify:
 - `edit_last` chains to previous output (same session)
 - `clear_history` cleans up test files
 
+> **Note:** `/mcp` reconnect alone may not load the new version. If the MCP server fails to reconnect or still runs the old version, close and reopen the terminal (restart Claude Code) to force a fresh `npx` fetch.
+
 ### 10. Update app-division-ops documentation
 
 Files that reference imgx-mcp version (update as applicable):

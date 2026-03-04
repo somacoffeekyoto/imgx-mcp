@@ -1,7 +1,7 @@
 import { createInterface } from "node:readline";
 import { rmSync, rmdirSync, existsSync } from "node:fs";
 import { dirname } from "node:path";
-import { getHistory, switchSession, clearHistory, clearGlobalHistory } from "../../core/history.js";
+import { getHistory, switchSession, clearHistory, clearSession, clearGlobalHistory } from "../../core/history.js";
 import * as out from "../output.js";
 
 export function runHistory(args: string[]): void {
@@ -25,10 +25,13 @@ export function runHistory(args: string[]): void {
   }
 
   if (sub === "clear") {
+    const positional = args.slice(1).filter((a) => !a.startsWith("--"));
+    const sessionId = positional[0];
     const hasYes = args.includes("--yes");
     const hasKeepFiles = args.includes("--keep-files");
     const hasAll = args.includes("--all");
-    runClear(hasYes, hasKeepFiles, hasAll);
+    if (sessionId && hasAll) return out.fail("Cannot use --all with session ID");
+    runClear(hasYes, hasKeepFiles, hasAll, sessionId);
     return;
   }
 
@@ -59,13 +62,13 @@ function showHistory(): void {
   });
 }
 
-function runClear(skipConfirm: boolean, keepFiles: boolean, clearAll: boolean): void {
+function runClear(skipConfirm: boolean, keepFiles: boolean, clearAll: boolean, sessionId?: string): void {
   if (clearAll) {
     runClearAll(keepFiles);
     return;
   }
 
-  const result = clearHistory();
+  const result = sessionId ? clearSession(sessionId) : clearHistory();
 
   if (keepFiles || result.filePaths.length === 0) {
     return out.success({ cleared: true, filesDeleted: 0 });
