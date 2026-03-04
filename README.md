@@ -129,7 +129,18 @@ generate → edit_last → edit_last → edit_last
                                     ↑ current
 ```
 
-After undo, calling `edit_last` branches from the current position (newer entries are discarded).
+After undo, calling `edit_last` branches from the current position (abandoned entries and their files are deleted from disk).
+
+**File naming** — `edit_last` generates sequential filenames based on the origin file:
+
+```
+generate_image             → cover.png
+edit_last                  → cover-1.png
+edit_last                  → cover-2.png
+
+generate_image (no output) → imgx-a1b2c3d4.png
+edit_last                  → imgx-a1b2c3d4-1.png
+```
 
 **Session switching** — Use `edit_history` to see all sessions, then `switch_session` to resume a previous session. The `edit_last` tool will use the current position in the switched session.
 

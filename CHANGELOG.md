@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.4.0 (2026-03-04)
+
+### Added
+
+- **Sequential file naming for edit chains** — `edit_last` now generates sequential filenames based on the origin file: `cover.png` → `cover-1.png` → `cover-2.png`. Default UUID-based names follow the same pattern: `imgx-a1b2c3d4.png` → `imgx-a1b2c3d4-1.png`
+- **File deletion on undo + re-edit** — When editing after undo, spliced (abandoned) entries' files are deleted from disk, preventing orphaned images
+- **Session base info tracking** — `Session` now stores `baseName`, `baseExt`, `baseDir` to maintain file identity across the edit chain
+- **`getSessionChainNumber()` API** — returns the next sequential number for chained edits
+- **`getSessionBaseInfo()` / `setSessionBaseInfo()` API** — read/write the origin file identity on the active session
+- 15 new tests (total: 81 tests)
+
+### Changed
+
+- **`saveImage()` signature** — new optional `isChained` parameter for sequential naming (backward compatible, defaults to falsy)
+- Legacy sessions without `baseName` fall back to UUID naming when `isChained` is true
+
 ## 1.3.0 (2026-03-04)
 
 ### Added
