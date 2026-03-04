@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.1 (2026-03-04)
+
+### Fixed
+
+- **MCP roots detection race condition** — `listRoots()` was called immediately after `server.connect()`, before the MCP initialization handshake completed. The request failed silently, causing `setProjectRoot()` to never execute and images to save to the fallback `~/Pictures/imgx/` instead of `<project-root>/.imgx/`. Now uses `oninitialized` callback to wait for handshake completion and checks `roots` capability before requesting.
+
 ## 1.4.0 (2026-03-04)
 
 ### Added

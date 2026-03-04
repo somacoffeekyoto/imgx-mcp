@@ -39,7 +39,7 @@ function buildImageContent(
 
 const server = new McpServer({
   name: "imgx",
-  version: "1.4.0",
+  version: "1.4.1",
 });
 
 // プロバイダ初期化
@@ -434,20 +434,25 @@ function fileUriToPath(uri: string): string {
 
 async function main() {
   const transport = new StdioServerTransport();
-  await server.connect(transport);
 
-  // Attempt to get workspace roots from the MCP client
-  try {
-    const result = await server.server.listRoots();
-    if (result.roots.length > 0) {
-      const rootUri = result.roots[0].uri;
-      if (rootUri.startsWith("file://")) {
-        setProjectRoot(fileUriToPath(rootUri));
+  // Wait for MCP initialization handshake before requesting roots
+  server.server.oninitialized = async () => {
+    try {
+      const caps = server.server.getClientCapabilities();
+      if (!caps?.roots) return;
+      const result = await server.server.listRoots();
+      if (result.roots.length > 0) {
+        const rootUri = result.roots[0].uri;
+        if (rootUri.startsWith("file://")) {
+          setProjectRoot(fileUriToPath(rootUri));
+        }
       }
+    } catch {
+      // Client does not support roots — fall back to .imgxrc detection
     }
-  } catch {
-    // Client does not support roots — fall back to .imgxrc detection
-  }
+  };
+
+  await server.connect(transport);
 }
 
 main().catch((err) => {

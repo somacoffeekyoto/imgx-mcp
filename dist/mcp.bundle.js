@@ -69977,7 +69977,7 @@ function buildImageContent(images, paths, extra) {
 }
 var server = new McpServer({
   name: "imgx",
-  version: "1.4.0"
+  version: "1.4.1"
 });
 initGemini();
 initOpenAI();
@@ -70287,17 +70287,22 @@ function fileUriToPath(uri) {
 }
 async function main() {
   const transport = new StdioServerTransport();
-  await server.connect(transport);
-  try {
-    const result = await server.server.listRoots();
-    if (result.roots.length > 0) {
-      const rootUri = result.roots[0].uri;
-      if (rootUri.startsWith("file://")) {
-        setProjectRoot(fileUriToPath(rootUri));
+  server.server.oninitialized = async () => {
+    try {
+      const caps = server.server.getClientCapabilities();
+      if (!caps?.roots)
+        return;
+      const result = await server.server.listRoots();
+      if (result.roots.length > 0) {
+        const rootUri = result.roots[0].uri;
+        if (rootUri.startsWith("file://")) {
+          setProjectRoot(fileUriToPath(rootUri));
+        }
       }
+    } catch {
     }
-  } catch {
-  }
+  };
+  await server.connect(transport);
 }
 main().catch((err) => {
   console.error("MCP server error:", err);
