@@ -1,6 +1,6 @@
 # Release Process
 
-All 11 steps are mandatory. Do not skip steps or reorder.
+All 12 steps are mandatory. Do not skip steps or reorder.
 
 ## Release checklist
 
@@ -60,15 +60,36 @@ npm publish --access public --otp=YOUR_OTP
 
 Verify: `npm info imgx-mcp version`
 
-### 8. Claude Code MCP update and verification
+### 8. Create GitHub Release
 
-Restart the MCP server in Claude Code and verify:
+```bash
+gh release create vX.Y.Z --title "vX.Y.Z" --latest --notes "$(cat <<'EOF'
+<paste CHANGELOG entry for this version>
+EOF
+)"
+```
+
+Also create releases for any skipped versions.
+Verify: `gh release list --limit 3`
+
+### 9. Verify published package
+
+Download the published npm package and confirm:
+
+```bash
+cd /tmp && npm pack imgx-mcp@X.Y.Z && tar xzf imgx-mcp-X.Y.Z.tgz
+cd package
+node dist/cli.bundle.js --version   # must print X.Y.Z
+grep 'X.Y.Z' dist/mcp.bundle.js    # must find version string
+```
+
+Then restart the MCP server in Claude Code and verify:
 
 - `generate_image` produces output
-- `edit_image` / `edit_last` work
-- `list_providers` returns correct version
+- `edit_last` chains to previous output (same session)
+- `clear_history` cleans up test files
 
-### 9. Update app-division-ops documentation
+### 10. Update app-division-ops documentation
 
 Files that reference imgx-mcp version (update as applicable):
 
@@ -76,11 +97,12 @@ Files that reference imgx-mcp version (update as applicable):
 |----------|-------|
 | Core docs | `CLAUDE.md`, `README.md`, `docs/app-division-plan.md`, `docs/team.md` |
 | Product spec | `docs/analytics/specs/imgx-mcp.md` |
+| Design doc | `docs/plans/imgx-mcp/design.md` |
 | Website sources | `content/platforms/somacoffee-net/imgx-mcp/{en,ja}/{lp,usage,story}.md` |
 | Website HTML | `content/platforms/somacoffee-net/imgx-mcp/html/{en,ja}/{lp,usage,story}.html` |
 | note.com articles | `content/platforms/note/articles/imgx-mcp/` (if content changed) |
 
-### 10. Commit and push (app-division-ops)
+### 11. Commit and push (app-division-ops)
 
 ```bash
 git add -A
@@ -88,13 +110,15 @@ git commit -m "docs: update imgx-mcp references to vX.Y.Z"
 git push
 ```
 
-### 11. Public distribution update
+### 12. Public distribution update
 
 | Channel | Action | Verification |
 |---------|--------|-------------|
-| somacoffee.net | Update WordPress pages (LP + usage + story) | Check live pages |
 | MCP Registry | `./mcp-publisher publish` | Succeeds with new version |
+| somacoffee.net | Update WordPress pages (LP + usage + story) | Check live pages |
 | Claude Desktop Skill ZIP | Upload `dist/image-generation-skill.zip` via Settings > Skills | Skill appears in Claude Desktop |
+
+Note: GitHub Release is created in step 8 before verification.
 
 Additional channels (auto-updated or pending):
 
