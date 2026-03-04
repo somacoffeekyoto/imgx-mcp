@@ -144,11 +144,12 @@ Switch to a different editing session to continue work on a previous image chain
 
 ### clear_history
 
-Clear all edit history. Optionally delete image files.
+Clear edit history for the current project. Optionally delete image files in managed directories.
 
 | Parameter | Required | Description |
 |-----------|----------|-------------|
-| `delete_files` | No | Delete image files in session directories (default: false) |
+| `delete_files` | No | Delete image files in managed directories only (default: false) |
+| `session_id` | No | Session ID to clear. Omit to clear all sessions |
 
 ### set_output_dir
 
@@ -214,10 +215,12 @@ Generate the same prompt with different providers to let the user choose:
 - **Be specific in prompts**: "A wooden table with a ceramic pour-over dripper, steam rising, soft natural light from left" works better than "coffee scene"
 - **Use edit_last for iteration**: Don't ask the user to specify file paths. Just use `edit_last` after any generation or edit
 - **Check provider capabilities**: Use `list_providers` if unsure what a provider supports
-- **Default output**: Images save to `~/Pictures/imgx/` with auto-generated filenames. Use `output` or `output_dir` to customize
+- **Default output**: When used via MCP, images save to `<project-root>/.imgx/` (project auto-detected). Falls back to `~/Pictures/imgx/` when no project is detected. Use `output` or `output_dir` to customize
 - **Inline preview**: MCP responses include base64 image data for inline display in supported clients
 - **Undo/redo**: Use `undo_edit` and `redo_edit` to step through edit history. Each session holds up to 10 entries
 - **Sessions**: Each `generate_image` starts a new session. Use `edit_history` to see all sessions and `switch_session` to resume a previous one
+- **Sequential naming**: When `output` specifies a filename, `edit_last` appends sequential numbers: `cover.png` → `cover-1.png` → `cover-2.png`. Undo automatically deletes discarded files
+- **Project scope**: History is stored per-project in `<project-root>/.imgx/output-history.json`. `clear_history` only affects the current project
 
 ## CLI fallback
 
