@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { homedir, platform } from "node:os";
 import { randomUUID } from "node:crypto";
+import { findProjectRoot } from "./config.js";
 
 // === History types for session-based undo/redo ===
 
@@ -37,12 +38,18 @@ export interface UndoRedoResult {
 
 const HISTORY_FILE = "output-history.json";
 
-function historyDir(): string {
-  if (process.env.IMGX_TEST_CONFIG_DIR) return process.env.IMGX_TEST_CONFIG_DIR;
+export function globalHistoryDir(): string {
   if (platform() === "win32") {
     return join(process.env.APPDATA || join(homedir(), "AppData", "Roaming"), "imgx");
   }
   return join(process.env.XDG_CONFIG_HOME || join(homedir(), ".config"), "imgx");
+}
+
+function historyDir(): string {
+  if (process.env.IMGX_TEST_CONFIG_DIR) return process.env.IMGX_TEST_CONFIG_DIR;
+  const projectRoot = findProjectRoot();
+  if (projectRoot) return join(projectRoot, ".imgx");
+  return globalHistoryDir();
 }
 
 function historyPath(): string {
@@ -213,6 +220,24 @@ export function clearHistory(): { filePaths: string[] } {
   saveHistory(history);
 
   return { filePaths };
+}
+
+export function clearGlobalHistory(): { filePaths: string[] } {
+  const globalPath = join(globalHistoryDir(), HISTORY_FILE);
+  try {
+    const raw = readFileSync(globalPath, "utf-8");
+    const history = JSON.parse(raw) as OutputHistory;
+    const filePaths: string[] = [];
+    for (const session of history.sessions) {
+      for (const entry of session.entries) filePaths.push(...entry.filePaths);
+    }
+    const dir = globalHistoryDir();
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(globalPath, JSON.stringify(emptyHistory(), null, 2) + "\n", "utf-8");
+    return { filePaths };
+  } catch {
+    return { filePaths: [] };
+  }
 }
 
 export function updateHistoryPaths(oldBase: string, newBase: string): void {

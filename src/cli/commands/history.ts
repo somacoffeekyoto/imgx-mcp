@@ -1,7 +1,7 @@
 import { createInterface } from "node:readline";
 import { rmSync, rmdirSync, existsSync } from "node:fs";
 import { dirname } from "node:path";
-import { getHistory, switchSession, clearHistory } from "../../core/history.js";
+import { getHistory, switchSession, clearHistory, clearGlobalHistory } from "../../core/history.js";
 import * as out from "../output.js";
 
 export function runHistory(args: string[]): void {
@@ -27,7 +27,8 @@ export function runHistory(args: string[]): void {
   if (sub === "clear") {
     const hasYes = args.includes("--yes");
     const hasKeepFiles = args.includes("--keep-files");
-    runClear(hasYes, hasKeepFiles);
+    const hasAll = args.includes("--all");
+    runClear(hasYes, hasKeepFiles, hasAll);
     return;
   }
 
@@ -58,7 +59,12 @@ function showHistory(): void {
   });
 }
 
-function runClear(skipConfirm: boolean, keepFiles: boolean): void {
+function runClear(skipConfirm: boolean, keepFiles: boolean, clearAll: boolean): void {
+  if (clearAll) {
+    runClearAll(keepFiles);
+    return;
+  }
+
   const result = clearHistory();
 
   if (keepFiles || result.filePaths.length === 0) {
@@ -82,6 +88,32 @@ function runClear(skipConfirm: boolean, keepFiles: boolean): void {
       } else {
         out.success({ cleared: true, filesDeleted: 0 });
       }
+    }
+  );
+}
+
+function runClearAll(keepFiles: boolean): void {
+  // --all always requires interactive confirmation (never skippable)
+  const rl = createInterface({ input: process.stdin, output: process.stderr });
+  rl.question(
+    "This will clear ALL history (project + global) across all projects. Continue? [y/N]: ",
+    (answer) => {
+      rl.close();
+      if (answer.toLowerCase() !== "y") {
+        out.success({ cleared: false, message: "Aborted" });
+        return;
+      }
+
+      const projectResult = clearHistory();
+      const globalResult = clearGlobalHistory();
+      const allFiles = [...projectResult.filePaths, ...globalResult.filePaths];
+
+      if (keepFiles || allFiles.length === 0) {
+        return out.success({ cleared: true, scope: "all", filesDeleted: 0 });
+      }
+
+      const deleted = deleteSessionFiles(allFiles);
+      out.success({ cleared: true, scope: "all", filesDeleted: deleted });
     }
   );
 }

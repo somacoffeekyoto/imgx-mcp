@@ -21,8 +21,11 @@ import {
   switchSession,
   getHistory,
   clearHistory,
+  clearGlobalHistory,
+  globalHistoryDir,
   updateHistoryPaths,
 } from "../../src/core/history.js";
+import { resetProjectRootCache } from "../../src/core/config.js";
 
 function makeTmpDir(): string {
   const dir = join(tmpdir(), `imgx-test-${randomUUID().slice(0, 8)}`);
@@ -595,5 +598,79 @@ describe("updateHistoryPaths", () => {
     expect(entries[1].filePaths[0]).toBe("/new/dir/img1.png");
     expect(entries[1].filePaths[1]).toBe("/new/dir/img2.png");
     expect(entries[1].inputImage).toBe("/new/dir/source.png");
+  });
+});
+
+describe("project-scoped history", () => {
+  let projectDir: string;
+  let globalDir: string;
+
+  beforeEach(() => {
+    projectDir = makeTmpDir();
+    globalDir = makeTmpDir();
+    // Create .imgxrc so findProjectRoot detects it
+    const { writeFileSync } = require("node:fs");
+    writeFileSync(join(projectDir, ".imgxrc"), "{}");
+    process.env.IMGX_PROJECT_ROOT = projectDir;
+    resetProjectRootCache();
+    // Do NOT set IMGX_TEST_CONFIG_DIR — let historyDir() use project root
+  });
+
+  afterEach(() => {
+    delete process.env.IMGX_PROJECT_ROOT;
+    delete process.env.IMGX_TEST_CONFIG_DIR;
+    resetProjectRootCache();
+    rmSync(projectDir, { recursive: true, force: true });
+    rmSync(globalDir, { recursive: true, force: true });
+  });
+
+  it("saves history to project .imgx directory", () => {
+    const entry = makeEntry({ prompt: "project test" });
+    pushHistory(entry, { newSession: true });
+
+    const historyPath = join(projectDir, ".imgx", "output-history.json");
+    const { existsSync } = require("node:fs");
+    expect(existsSync(historyPath)).toBe(true);
+
+    const history = loadHistory();
+    expect(history.sessions).toHaveLength(1);
+    expect(history.sessions[0].entries[0].prompt).toBe("project test");
+  });
+
+  it("project history is independent from other projects", () => {
+    const entry = makeEntry({ prompt: "project A" });
+    pushHistory(entry, { newSession: true });
+
+    // Switch to a different project
+    const otherProject = makeTmpDir();
+    const { writeFileSync } = require("node:fs");
+    writeFileSync(join(otherProject, ".imgxrc"), "{}");
+    process.env.IMGX_PROJECT_ROOT = otherProject;
+    resetProjectRootCache();
+
+    const history = loadHistory();
+    expect(history.sessions).toHaveLength(0);
+
+    // Clean up
+    rmSync(otherProject, { recursive: true, force: true });
+  });
+});
+
+describe("clearGlobalHistory", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = makeTmpDir();
+    process.env.IMGX_TEST_CONFIG_DIR = tmpDir;
+  });
+
+  afterEach(() => {
+    delete process.env.IMGX_TEST_CONFIG_DIR;
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("returns empty filePaths when no global history exists", () => {
+    const result = clearGlobalHistory();
+    expect(result.filePaths).toHaveLength(0);
   });
 });

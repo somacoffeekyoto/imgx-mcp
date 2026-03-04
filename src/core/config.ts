@@ -1,5 +1,5 @@
-import { readFileSync, writeFileSync, mkdirSync, chmodSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { readFileSync, writeFileSync, mkdirSync, chmodSync, existsSync } from "node:fs";
+import { dirname, isAbsolute, join, resolve } from "node:path";
 import { homedir, platform } from "node:os";
 
 export interface ImgxConfig {
@@ -14,6 +14,38 @@ export interface ImgxConfig {
     aspectRatio?: string;
     resolution?: string;
   };
+}
+
+let _cachedProjectRoot: string | null | undefined; // undefined = not searched
+
+/** Find the nearest ancestor directory containing .imgxrc */
+export function findProjectRoot(startDir?: string): string | null {
+  if (process.env.IMGX_PROJECT_ROOT) return process.env.IMGX_PROJECT_ROOT;
+  if (_cachedProjectRoot !== undefined) return _cachedProjectRoot;
+  let dir = resolve(startDir ?? process.cwd());
+  while (true) {
+    if (existsSync(join(dir, ".imgxrc"))) {
+      _cachedProjectRoot = dir;
+      return dir;
+    }
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  _cachedProjectRoot = null;
+  return null;
+}
+
+/** Reset the cached project root (for testing) */
+export function resetProjectRootCache(): void {
+  _cachedProjectRoot = undefined;
+}
+
+/** Resolve a relative path against the project root, or CWD if no project */
+export function resolveProjectPath(relativePath: string): string {
+  if (isAbsolute(relativePath)) return relativePath;
+  const root = findProjectRoot();
+  return resolve(root ?? process.cwd(), relativePath);
 }
 
 function configDir(): string {
@@ -60,10 +92,12 @@ export function resolveApiKey(providerName: string): string | undefined {
   return config.providers?.[providerName]?.apiKey;
 }
 
-/** Load .imgxrc from current directory (project-level config, no API keys) */
+/** Load .imgxrc from project root (project-level config, no API keys) */
 export function loadProjectConfig(): ImgxConfig {
+  const root = findProjectRoot();
+  if (!root) return {};
   try {
-    const raw = readFileSync(resolve(".imgxrc"), "utf-8");
+    const raw = readFileSync(join(root, ".imgxrc"), "utf-8");
     return JSON.parse(raw) as ImgxConfig;
   } catch {
     return {};

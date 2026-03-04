@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.1.0 (2026-03-04)
+
+### Added
+
+- **Project-scoped history** — When `.imgxrc` exists, history is saved to `<project-root>/.imgx/output-history.json` instead of the global `%APPDATA%/imgx/` (or `~/.config/imgx/`). Each project gets its own independent edit history. Falls back to global when no `.imgxrc` is found
+- **`findProjectRoot()`** — Walks up from CWD to find `.imgxrc`, with `IMGX_PROJECT_ROOT` env var override and result caching
+- **`resolveProjectPath()`** — Resolves relative paths against the project root (or CWD if no project)
+- **`clearGlobalHistory()`** — Explicitly clears the global history store, separate from project history
+- **CLI `history clear --all`** — Clears both project and global history with mandatory interactive confirmation (cannot be skipped with `--yes`)
+- 17 new tests for project root detection, project-scoped history, and path resolution (total: 54 tests)
+
+### Changed
+
+- **`clear_history` (MCP)** now scopes to the current project automatically
+- **Relative path resolution** — `saveImage()`, `readImageAsBase64()`, `fallbackOutputDir()`, and OpenAI `edit()` now resolve relative paths against the project root instead of the MCP server's CWD
+- **`loadProjectConfig()`** uses `findProjectRoot()` to locate `.imgxrc` from ancestor directories, not just CWD
+
 ## 1.0.4 (2026-03-03)
 
 ### Added

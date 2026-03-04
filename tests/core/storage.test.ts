@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdirSync, rmSync, existsSync } from "node:fs";
-import { join } from "node:path";
-import { saveImage } from "../../src/core/storage.js";
+import { mkdirSync, rmSync, existsSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
+import { saveImage, readImageAsBase64 } from "../../src/core/storage.js";
+import { resetProjectRootCache } from "../../src/core/config.js";
 
 const TEST_OUTPUT_DIR = join(process.cwd(), "tests", ".tmp-output");
 
@@ -33,5 +34,50 @@ describe("saveImage with sessionId", () => {
     const path = saveImage(image, undefined, TEST_OUTPUT_DIR, "s-abcd1234");
     const sessionDir = join(TEST_OUTPUT_DIR, "s-abcd1234");
     expect(existsSync(sessionDir)).toBe(true);
+  });
+});
+
+describe("saveImage with project path resolution", () => {
+  let projectDir: string;
+  const origEnv = process.env.IMGX_PROJECT_ROOT;
+
+  beforeEach(() => {
+    projectDir = join(process.cwd(), "tests", ".tmp-project");
+    mkdirSync(projectDir, { recursive: true });
+    writeFileSync(join(projectDir, ".imgxrc"), "{}");
+    process.env.IMGX_PROJECT_ROOT = projectDir;
+    resetProjectRootCache();
+  });
+
+  afterEach(() => {
+    if (origEnv !== undefined) {
+      process.env.IMGX_PROJECT_ROOT = origEnv;
+    } else {
+      delete process.env.IMGX_PROJECT_ROOT;
+    }
+    resetProjectRootCache();
+    rmSync(projectDir, { recursive: true, force: true });
+  });
+
+  it("resolves relative output path against project root", () => {
+    const image = { data: Buffer.from("PNG"), mimeType: "image/png" };
+    const path = saveImage(image, "images/test.png");
+    expect(path).toBe(join(projectDir, "images", "test.png"));
+    expect(existsSync(path)).toBe(true);
+  });
+
+  it("preserves absolute output path unchanged", () => {
+    const image = { data: Buffer.from("PNG"), mimeType: "image/png" };
+    const absPath = join(projectDir, "abs-output.png");
+    const path = saveImage(image, absPath);
+    expect(path).toBe(absPath);
+    expect(existsSync(path)).toBe(true);
+  });
+
+  it("resolves relative outputDir against project root", () => {
+    const image = { data: Buffer.from("PNG"), mimeType: "image/png" };
+    const path = saveImage(image, undefined, "output-images");
+    expect(path).toContain(join(projectDir, "output-images"));
+    expect(existsSync(path)).toBe(true);
   });
 });

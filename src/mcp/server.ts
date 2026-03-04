@@ -35,7 +35,7 @@ function buildImageContent(
 
 const server = new McpServer({
   name: "imgx",
-  version: "1.0.4",
+  version: "1.1.0",
 });
 
 // プロバイダ初期化
@@ -318,7 +318,7 @@ server.tool(
 // --- clear_history ---
 server.tool(
   "clear_history",
-  "Clear all edit history. Optionally delete image files.",
+  "Clear edit history for the current project. Optionally delete image files.",
   { delete_files: z.boolean().optional().default(false).describe("Delete image files in session directories") },
   async (args) => {
     try {

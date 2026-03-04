@@ -96,7 +96,7 @@ The skill guides Claude Code through image workflows: blog covers, iterative edi
 | `redo_edit` | Redo a previously undone edit |
 | `edit_history` | Show all sessions and their edit history with metadata |
 | `switch_session` | Switch to a different editing session |
-| `clear_history` | Clear all history (optionally delete image files) |
+| `clear_history` | Clear project history (optionally delete image files) |
 | `set_output_dir` | Change the default output directory (optionally move existing files) |
 | `list_providers` | List available providers and capabilities |
 
@@ -314,9 +314,10 @@ imgx redo               # Re-apply an undone edit
 # History
 imgx history            # Show all sessions and entries
 imgx history switch <session-id>  # Switch to a different session
-imgx history clear      # Clear all history (interactive)
+imgx history clear      # Clear project history (interactive)
 imgx history clear --yes          # Clear without confirmation
 imgx history clear --keep-files   # Clear history but keep image files
+imgx history clear --all          # Clear ALL history across all projects
 
 # Provider management
 imgx providers          # List providers and capabilities
@@ -376,11 +377,13 @@ Or create manually:
 
 Project config is shared via Git. Do not put API keys in `.imgxrc`.
 
+When `.imgxrc` is present, imgx-mcp treats that directory as the project root. History is saved to `<project-root>/.imgx/output-history.json` (project-scoped, not shared with other projects). Relative paths in `output` and `output_dir` are resolved against the project root instead of the MCP server's working directory.
+
 ### Settings resolution
 
 1. CLI flags (`--model`, `--output-dir`, etc.)
 2. Environment variables (`IMGX_MODEL`, `IMGX_OUTPUT_DIR`, etc.)
-3. Project config (`.imgxrc` in current directory)
+3. Project config (`.imgxrc` — searched from current directory upward)
 4. User config (`~/.config/imgx/config.json` or `%APPDATA%\imgx\config.json`)
 5. Provider defaults
 

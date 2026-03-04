@@ -14,7 +14,7 @@ import { runUndo } from "./commands/undo.js";
 import { runRedo } from "./commands/redo.js";
 import * as out from "./output.js";
 
-const VERSION = "1.0.4";
+const VERSION = "1.1.0";
 
 const HELP = `imgx v${VERSION} — AI image generation and editing for MCP-compatible AI agents
 
@@ -70,9 +70,10 @@ Environment variables (override config file):
 History:
   imgx history                       Show all sessions and entries
   imgx history switch <session-id>   Switch to a different session
-  imgx history clear                 Clear history (with confirmation)
-  imgx history clear --yes           Clear history and delete files
-  imgx history clear --keep-files    Clear history, keep image files
+  imgx history clear                 Clear project history (with confirmation)
+  imgx history clear --yes           Clear project history and delete files
+  imgx history clear --keep-files    Clear project history, keep image files
+  imgx history clear --all           Clear ALL history across all projects (confirmation required)
 `;
 
 function main(): void {

@@ -303,7 +303,7 @@ var require_p_retry = __commonJS({
       return error;
     };
     var isNetworkError = (errorMessage) => networkErrorMsgs.includes(errorMessage);
-    var pRetry2 = (input, options) => new Promise((resolve6, reject) => {
+    var pRetry2 = (input, options) => new Promise((resolve5, reject) => {
       options = {
         onFailedAttempt: () => {
         },
@@ -313,7 +313,7 @@ var require_p_retry = __commonJS({
       const operation = retry.operation(options);
       operation.attempt(async (attemptNumber) => {
         try {
-          resolve6(await input(attemptNumber));
+          resolve5(await input(attemptNumber));
         } catch (error) {
           if (!(error instanceof Error)) {
             reject(new TypeError(`Non-error was thrown: "${error}". You should only throw errors.`));
@@ -850,8 +850,8 @@ var require_retry3 = __commonJS({
       }
       const delay = getNextRetryDelay(config);
       err.config.retryConfig.currentRetryAttempt += 1;
-      const backoff = config.retryBackoff ? config.retryBackoff(err, delay) : new Promise((resolve6) => {
-        setTimeout(resolve6, delay);
+      const backoff = config.retryBackoff ? config.retryBackoff(err, delay) : new Promise((resolve5) => {
+        setTimeout(resolve5, delay);
       });
       if (config.onRetryAttempt) {
         await config.onRetryAttempt(err);
@@ -1627,8 +1627,8 @@ var require_helpers = __commonJS({
     function req(url, opts = {}) {
       const href = typeof url === "string" ? url : url.href;
       const req2 = (href.startsWith("https:") ? https2 : http3).request(url, opts);
-      const promise = new Promise((resolve6, reject) => {
-        req2.once("response", resolve6).once("error", reject).end();
+      const promise = new Promise((resolve5, reject) => {
+        req2.once("response", resolve5).once("error", reject).end();
       });
       req2.then = promise.then.bind(promise);
       return req2;
@@ -1805,7 +1805,7 @@ var require_parse_proxy_response = __commonJS({
     var debug_1 = __importDefault(require_src());
     var debug = (0, debug_1.default)("https-proxy-agent:parse-proxy-response");
     function parseProxyResponse(socket) {
-      return new Promise((resolve6, reject) => {
+      return new Promise((resolve5, reject) => {
         let buffersLength = 0;
         const buffers = [];
         function read() {
@@ -1871,7 +1871,7 @@ var require_parse_proxy_response = __commonJS({
           }
           debug("got proxy server response: %o %o", firstLine, headers);
           cleanup();
-          resolve6({
+          resolve5({
             connect: {
               statusCode,
               statusText,
@@ -2113,7 +2113,7 @@ var require_ponyfill_es2018 = __commonJS({
         return new originalPromise(executor);
       }
       function promiseResolvedWith(value) {
-        return newPromise((resolve6) => resolve6(value));
+        return newPromise((resolve5) => resolve5(value));
       }
       function promiseRejectedWith(reason) {
         return originalPromiseReject(reason);
@@ -2283,8 +2283,8 @@ var require_ponyfill_es2018 = __commonJS({
         return new TypeError("Cannot " + name + " a stream using a released reader");
       }
       function defaultReaderClosedPromiseInitialize(reader) {
-        reader._closedPromise = newPromise((resolve6, reject) => {
-          reader._closedPromise_resolve = resolve6;
+        reader._closedPromise = newPromise((resolve5, reject) => {
+          reader._closedPromise_resolve = resolve5;
           reader._closedPromise_reject = reject;
         });
       }
@@ -2458,8 +2458,8 @@ var require_ponyfill_es2018 = __commonJS({
           }
           let resolvePromise;
           let rejectPromise;
-          const promise = newPromise((resolve6, reject) => {
-            resolvePromise = resolve6;
+          const promise = newPromise((resolve5, reject) => {
+            resolvePromise = resolve5;
             rejectPromise = reject;
           });
           const readRequest = {
@@ -2564,8 +2564,8 @@ var require_ponyfill_es2018 = __commonJS({
           const reader = this._reader;
           let resolvePromise;
           let rejectPromise;
-          const promise = newPromise((resolve6, reject) => {
-            resolvePromise = resolve6;
+          const promise = newPromise((resolve5, reject) => {
+            resolvePromise = resolve5;
             rejectPromise = reject;
           });
           const readRequest = {
@@ -3584,8 +3584,8 @@ var require_ponyfill_es2018 = __commonJS({
           }
           let resolvePromise;
           let rejectPromise;
-          const promise = newPromise((resolve6, reject) => {
-            resolvePromise = resolve6;
+          const promise = newPromise((resolve5, reject) => {
+            resolvePromise = resolve5;
             rejectPromise = reject;
           });
           const readIntoRequest = {
@@ -3897,10 +3897,10 @@ var require_ponyfill_es2018 = __commonJS({
           wasAlreadyErroring = true;
           reason = void 0;
         }
-        const promise = newPromise((resolve6, reject) => {
+        const promise = newPromise((resolve5, reject) => {
           stream._pendingAbortRequest = {
             _promise: void 0,
-            _resolve: resolve6,
+            _resolve: resolve5,
             _reject: reject,
             _reason: reason,
             _wasAlreadyErroring: wasAlreadyErroring
@@ -3917,9 +3917,9 @@ var require_ponyfill_es2018 = __commonJS({
         if (state === "closed" || state === "errored") {
           return promiseRejectedWith(new TypeError(`The stream (in ${state} state) is not in the writable state and cannot be closed`));
         }
-        const promise = newPromise((resolve6, reject) => {
+        const promise = newPromise((resolve5, reject) => {
           const closeRequest = {
-            _resolve: resolve6,
+            _resolve: resolve5,
             _reject: reject
           };
           stream._closeRequest = closeRequest;
@@ -3932,9 +3932,9 @@ var require_ponyfill_es2018 = __commonJS({
         return promise;
       }
       function WritableStreamAddWriteRequest(stream) {
-        const promise = newPromise((resolve6, reject) => {
+        const promise = newPromise((resolve5, reject) => {
           const writeRequest = {
-            _resolve: resolve6,
+            _resolve: resolve5,
             _reject: reject
           };
           stream._writeRequests.push(writeRequest);
@@ -4550,8 +4550,8 @@ var require_ponyfill_es2018 = __commonJS({
         return new TypeError("Cannot " + name + " a stream using a released writer");
       }
       function defaultWriterClosedPromiseInitialize(writer) {
-        writer._closedPromise = newPromise((resolve6, reject) => {
-          writer._closedPromise_resolve = resolve6;
+        writer._closedPromise = newPromise((resolve5, reject) => {
+          writer._closedPromise_resolve = resolve5;
           writer._closedPromise_reject = reject;
           writer._closedPromiseState = "pending";
         });
@@ -4587,8 +4587,8 @@ var require_ponyfill_es2018 = __commonJS({
         writer._closedPromiseState = "resolved";
       }
       function defaultWriterReadyPromiseInitialize(writer) {
-        writer._readyPromise = newPromise((resolve6, reject) => {
-          writer._readyPromise_resolve = resolve6;
+        writer._readyPromise = newPromise((resolve5, reject) => {
+          writer._readyPromise_resolve = resolve5;
           writer._readyPromise_reject = reject;
         });
         writer._readyPromiseState = "pending";
@@ -4675,7 +4675,7 @@ var require_ponyfill_es2018 = __commonJS({
         source._disturbed = true;
         let shuttingDown = false;
         let currentWrite = promiseResolvedWith(void 0);
-        return newPromise((resolve6, reject) => {
+        return newPromise((resolve5, reject) => {
           let abortAlgorithm;
           if (signal !== void 0) {
             abortAlgorithm = () => {
@@ -4820,7 +4820,7 @@ var require_ponyfill_es2018 = __commonJS({
             if (isError) {
               reject(error);
             } else {
-              resolve6(void 0);
+              resolve5(void 0);
             }
             return null;
           }
@@ -5101,8 +5101,8 @@ var require_ponyfill_es2018 = __commonJS({
         let branch1;
         let branch2;
         let resolveCancelPromise;
-        const cancelPromise = newPromise((resolve6) => {
-          resolveCancelPromise = resolve6;
+        const cancelPromise = newPromise((resolve5) => {
+          resolveCancelPromise = resolve5;
         });
         function pullAlgorithm() {
           if (reading) {
@@ -5193,8 +5193,8 @@ var require_ponyfill_es2018 = __commonJS({
         let branch1;
         let branch2;
         let resolveCancelPromise;
-        const cancelPromise = newPromise((resolve6) => {
-          resolveCancelPromise = resolve6;
+        const cancelPromise = newPromise((resolve5) => {
+          resolveCancelPromise = resolve5;
         });
         function forwardReaderError(thisReader) {
           uponRejection(thisReader._closedPromise, (r2) => {
@@ -5974,8 +5974,8 @@ var require_ponyfill_es2018 = __commonJS({
           const writableHighWaterMark = ExtractHighWaterMark(writableStrategy, 1);
           const writableSizeAlgorithm = ExtractSizeAlgorithm(writableStrategy);
           let startPromise_resolve;
-          const startPromise = newPromise((resolve6) => {
-            startPromise_resolve = resolve6;
+          const startPromise = newPromise((resolve5) => {
+            startPromise_resolve = resolve5;
           });
           InitializeTransformStream(this, startPromise, writableHighWaterMark, writableSizeAlgorithm, readableHighWaterMark, readableSizeAlgorithm);
           SetUpTransformStreamDefaultControllerFromTransformer(this, transformer);
@@ -6068,8 +6068,8 @@ var require_ponyfill_es2018 = __commonJS({
         if (stream._backpressureChangePromise !== void 0) {
           stream._backpressureChangePromise_resolve();
         }
-        stream._backpressureChangePromise = newPromise((resolve6) => {
-          stream._backpressureChangePromise_resolve = resolve6;
+        stream._backpressureChangePromise = newPromise((resolve5) => {
+          stream._backpressureChangePromise_resolve = resolve5;
         });
         stream._backpressure = backpressure;
       }
@@ -6237,8 +6237,8 @@ var require_ponyfill_es2018 = __commonJS({
           return controller._finishPromise;
         }
         const readable = stream._readable;
-        controller._finishPromise = newPromise((resolve6, reject) => {
-          controller._finishPromise_resolve = resolve6;
+        controller._finishPromise = newPromise((resolve5, reject) => {
+          controller._finishPromise_resolve = resolve5;
           controller._finishPromise_reject = reject;
         });
         const cancelPromise = controller._cancelAlgorithm(reason);
@@ -6264,8 +6264,8 @@ var require_ponyfill_es2018 = __commonJS({
           return controller._finishPromise;
         }
         const readable = stream._readable;
-        controller._finishPromise = newPromise((resolve6, reject) => {
-          controller._finishPromise_resolve = resolve6;
+        controller._finishPromise = newPromise((resolve5, reject) => {
+          controller._finishPromise_resolve = resolve5;
           controller._finishPromise_reject = reject;
         });
         const flushPromise = controller._flushAlgorithm();
@@ -6295,8 +6295,8 @@ var require_ponyfill_es2018 = __commonJS({
           return controller._finishPromise;
         }
         const writable = stream._writable;
-        controller._finishPromise = newPromise((resolve6, reject) => {
-          controller._finishPromise_resolve = resolve6;
+        controller._finishPromise = newPromise((resolve5, reject) => {
+          controller._finishPromise_resolve = resolve5;
           controller._finishPromise_reject = reject;
         });
         const cancelPromise = controller._cancelAlgorithm(reason);
@@ -8247,7 +8247,7 @@ import zlib from "node:zlib";
 import Stream2, { PassThrough as PassThrough2, pipeline as pump } from "node:stream";
 import { Buffer as Buffer3 } from "node:buffer";
 async function fetch2(url, options_) {
-  return new Promise((resolve6, reject) => {
+  return new Promise((resolve5, reject) => {
     const request = new Request(url, options_);
     const { parsedURL, options } = getNodeRequestOptions(request);
     if (!supportedSchemas.has(parsedURL.protocol)) {
@@ -8256,7 +8256,7 @@ async function fetch2(url, options_) {
     if (parsedURL.protocol === "data:") {
       const data = dist_default(request.url);
       const response2 = new Response2(data, { headers: { "Content-Type": data.typeFull } });
-      resolve6(response2);
+      resolve5(response2);
       return;
     }
     const send = (parsedURL.protocol === "https:" ? https : http2).request;
@@ -8378,7 +8378,7 @@ async function fetch2(url, options_) {
             if (responseReferrerPolicy) {
               requestOptions.referrerPolicy = responseReferrerPolicy;
             }
-            resolve6(fetch2(new Request(locationURL, requestOptions)));
+            resolve5(fetch2(new Request(locationURL, requestOptions)));
             finalize();
             return;
           }
@@ -8411,7 +8411,7 @@ async function fetch2(url, options_) {
       const codings = headers.get("Content-Encoding");
       if (!request.compress || request.method === "HEAD" || codings === null || response_.statusCode === 204 || response_.statusCode === 304) {
         response = new Response2(body, responseOptions);
-        resolve6(response);
+        resolve5(response);
         return;
       }
       const zlibOptions = {
@@ -8425,7 +8425,7 @@ async function fetch2(url, options_) {
           }
         });
         response = new Response2(body, responseOptions);
-        resolve6(response);
+        resolve5(response);
         return;
       }
       if (codings === "deflate" || codings === "x-deflate") {
@@ -8449,12 +8449,12 @@ async function fetch2(url, options_) {
             });
           }
           response = new Response2(body, responseOptions);
-          resolve6(response);
+          resolve5(response);
         });
         raw.once("end", () => {
           if (!response) {
             response = new Response2(body, responseOptions);
-            resolve6(response);
+            resolve5(response);
           }
         });
         return;
@@ -8466,11 +8466,11 @@ async function fetch2(url, options_) {
           }
         });
         response = new Response2(body, responseOptions);
-        resolve6(response);
+        resolve5(response);
         return;
       }
       response = new Response2(body, responseOptions);
-      resolve6(response);
+      resolve5(response);
     });
     writeToStream(request_, request).catch(reject);
   });
@@ -14540,7 +14540,7 @@ var require_jwtaccess = __commonJS({
         }
       }
       fromStreamAsync(inputStream) {
-        return new Promise((resolve6, reject) => {
+        return new Promise((resolve5, reject) => {
           if (!inputStream) {
             reject(new Error("Must pass in a stream containing the service account auth settings."));
           }
@@ -14549,7 +14549,7 @@ var require_jwtaccess = __commonJS({
             try {
               const data = JSON.parse(s2);
               this.fromJSON(data);
-              resolve6();
+              resolve5();
             } catch (err) {
               reject(err);
             }
@@ -14788,7 +14788,7 @@ var require_jwtclient = __commonJS({
         }
       }
       fromStreamAsync(inputStream) {
-        return new Promise((resolve6, reject) => {
+        return new Promise((resolve5, reject) => {
           if (!inputStream) {
             throw new Error("Must pass in a stream containing the service account auth settings.");
           }
@@ -14797,7 +14797,7 @@ var require_jwtclient = __commonJS({
             try {
               const data = JSON.parse(s2);
               this.fromJSON(data);
-              resolve6();
+              resolve5();
             } catch (e2) {
               reject(e2);
             }
@@ -14930,7 +14930,7 @@ var require_refreshclient = __commonJS({
         }
       }
       async fromStreamAsync(inputStream) {
-        return new Promise((resolve6, reject) => {
+        return new Promise((resolve5, reject) => {
           if (!inputStream) {
             return reject(new Error("Must pass in a stream containing the user refresh token."));
           }
@@ -14939,7 +14939,7 @@ var require_refreshclient = __commonJS({
             try {
               const data = JSON.parse(s2);
               this.fromJSON(data);
-              return resolve6();
+              return resolve5();
             } catch (err) {
               return reject(err);
             }
@@ -16772,7 +16772,7 @@ var require_pluggable_auth_handler = __commonJS({
        * @return A promise that resolves with the executable response.
        */
       retrieveResponseFromExecutable(envMap) {
-        return new Promise((resolve6, reject) => {
+        return new Promise((resolve5, reject) => {
           const child = childProcess.spawn(this.commandComponents[0], this.commandComponents.slice(1), {
             env: { ...process.env, ...Object.fromEntries(envMap) }
           });
@@ -16794,7 +16794,7 @@ var require_pluggable_auth_handler = __commonJS({
               try {
                 const responseJson = JSON.parse(output);
                 const response = new executable_response_1.ExecutableResponse(responseJson);
-                return resolve6(response);
+                return resolve5(response);
               } catch (error) {
                 if (error instanceof executable_response_1.ExecutableResponseError) {
                   return reject(error);
@@ -17697,7 +17697,7 @@ var require_googleauth = __commonJS({
         }
       }
       fromStreamAsync(inputStream, options) {
-        return new Promise((resolve6, reject) => {
+        return new Promise((resolve5, reject) => {
           if (!inputStream) {
             throw new Error("Must pass in a stream containing the Google auth settings.");
           }
@@ -17707,7 +17707,7 @@ var require_googleauth = __commonJS({
               try {
                 const data = JSON.parse(chunks.join(""));
                 const r2 = this._cacheClientFromJSON(data, options);
-                return resolve6(r2);
+                return resolve5(r2);
               } catch (err) {
                 if (!this.keyFilename)
                   throw err;
@@ -17717,7 +17717,7 @@ var require_googleauth = __commonJS({
                 });
                 this.cachedCredential = client;
                 this.setGapicJWTValues(client);
-                return resolve6(client);
+                return resolve5(client);
               }
             } catch (err) {
               return reject(err);
@@ -17753,17 +17753,17 @@ var require_googleauth = __commonJS({
        * Run the Google Cloud SDK command that prints the default project ID
        */
       async getDefaultServiceProjectId() {
-        return new Promise((resolve6) => {
+        return new Promise((resolve5) => {
           (0, child_process_1.exec)("gcloud config config-helper --format json", (err, stdout) => {
             if (!err && stdout) {
               try {
                 const projectId = JSON.parse(stdout).configuration.properties.core.project;
-                resolve6(projectId);
+                resolve5(projectId);
                 return;
               } catch (e2) {
               }
             }
-            resolve6(null);
+            resolve5(null);
           });
         });
       }
@@ -22048,9 +22048,35 @@ function findProviderWith(capability) {
 }
 
 // build/core/config.js
-import { readFileSync, writeFileSync, mkdirSync, chmodSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { readFileSync, writeFileSync, mkdirSync, chmodSync, existsSync } from "node:fs";
+import { dirname, isAbsolute, join, resolve } from "node:path";
 import { homedir, platform } from "node:os";
+var _cachedProjectRoot;
+function findProjectRoot(startDir) {
+  if (process.env.IMGX_PROJECT_ROOT)
+    return process.env.IMGX_PROJECT_ROOT;
+  if (_cachedProjectRoot !== void 0)
+    return _cachedProjectRoot;
+  let dir = resolve(startDir ?? process.cwd());
+  while (true) {
+    if (existsSync(join(dir, ".imgxrc"))) {
+      _cachedProjectRoot = dir;
+      return dir;
+    }
+    const parent = dirname(dir);
+    if (parent === dir)
+      break;
+    dir = parent;
+  }
+  _cachedProjectRoot = null;
+  return null;
+}
+function resolveProjectPath(relativePath) {
+  if (isAbsolute(relativePath))
+    return relativePath;
+  const root = findProjectRoot();
+  return resolve(root ?? process.cwd(), relativePath);
+}
 function configDir() {
   if (platform() === "win32") {
     return join(process.env.APPDATA || join(homedir(), "AppData", "Roaming"), "imgx");
@@ -22091,8 +22117,11 @@ function resolveApiKey(providerName) {
   return config.providers?.[providerName]?.apiKey;
 }
 function loadProjectConfig() {
+  const root = findProjectRoot();
+  if (!root)
+    return {};
   try {
-    const raw = readFileSync(resolve(".imgxrc"), "utf-8");
+    const raw = readFileSync(join(root, ".imgxrc"), "utf-8");
     return JSON.parse(raw);
   } catch {
     return {};
@@ -26881,14 +26910,14 @@ function __asyncValues(o) {
   }, i2);
   function verb(n) {
     i2[n] = o[n] && function(v) {
-      return new Promise(function(resolve6, reject) {
-        v = o[n](v), settle(resolve6, reject, v.done, v.value);
+      return new Promise(function(resolve5, reject) {
+        v = o[n](v), settle(resolve5, reject, v.done, v.value);
       });
     };
   }
-  function settle(resolve6, reject, d, v) {
+  function settle(resolve5, reject, d, v) {
     Promise.resolve(v).then(function(v2) {
-      resolve6({ value: v2, done: d });
+      resolve5({ value: v2, done: d });
     }, reject);
   }
 }
@@ -32859,8 +32888,8 @@ var LiveMusic = class {
     const url = `${websocketBaseUrl}/ws/google.ai.generativelanguage.${apiVersion}.GenerativeService.BidiGenerateMusic?key=${apiKey}`;
     let onopenResolve = () => {
     };
-    const onopenPromise = new Promise((resolve6) => {
-      onopenResolve = resolve6;
+    const onopenPromise = new Promise((resolve5) => {
+      onopenResolve = resolve5;
     });
     const callbacks = params.callbacks;
     const onopenAwaitedCallback = function() {
@@ -33100,8 +33129,8 @@ var Live = class {
     }
     let onopenResolve = () => {
     };
-    const onopenPromise = new Promise((resolve6) => {
-      onopenResolve = resolve6;
+    const onopenPromise = new Promise((resolve5) => {
+      onopenResolve = resolve5;
     });
     const callbacks = params.callbacks;
     const onopenAwaitedCallback = function() {
@@ -36043,7 +36072,7 @@ var safeJSON = (text) => {
     return void 0;
   }
 };
-var sleep$1 = (ms) => new Promise((resolve6) => setTimeout(resolve6, ms));
+var sleep$1 = (ms) => new Promise((resolve5) => setTimeout(resolve5, ms));
 var VERSION = "0.0.1";
 function getDetectedPlatform() {
   if (typeof Deno !== "undefined" && Deno.build != null) {
@@ -36963,8 +36992,8 @@ async function defaultParseResponse(client, props) {
 }
 var APIPromise = class _APIPromise extends Promise {
   constructor(client, responsePromise, parseResponse = defaultParseResponse) {
-    super((resolve6) => {
-      resolve6(null);
+    super((resolve5) => {
+      resolve5(null);
     });
     this.responsePromise = responsePromise;
     this.parseResponse = parseResponse;
@@ -39195,7 +39224,7 @@ function getApiKeyFromEnv() {
 
 // build/core/storage.js
 import { readFileSync as readFileSync2, writeFileSync as writeFileSync2, mkdirSync as mkdirSync2 } from "node:fs";
-import { dirname, join as join2, resolve as resolve2 } from "node:path";
+import { dirname as dirname2, join as join2, resolve as resolve2 } from "node:path";
 import { randomUUID } from "node:crypto";
 import { homedir as homedir2 } from "node:os";
 var MIME_TO_EXT = {
@@ -39204,7 +39233,7 @@ var MIME_TO_EXT = {
   "image/webp": ".webp"
 };
 function readImageAsBase64(filePath) {
-  const absPath = resolve2(filePath);
+  const absPath = resolveProjectPath(filePath);
   const buffer = readFileSync2(absPath);
   const ext = filePath.split(".").pop()?.toLowerCase();
   const mimeType = ext === "jpg" || ext === "jpeg" ? "image/jpeg" : ext === "webp" ? "image/webp" : "image/png";
@@ -39212,7 +39241,7 @@ function readImageAsBase64(filePath) {
 }
 function fallbackOutputDir(outputDir) {
   if (outputDir)
-    return outputDir;
+    return resolveProjectPath(outputDir);
   const configured = resolveDefault("outputDir");
   if (configured)
     return configured;
@@ -39222,13 +39251,13 @@ function saveImage(image, outputPath, outputDir, sessionId) {
   const ext = MIME_TO_EXT[image.mimeType] || ".png";
   let filePath;
   if (outputPath) {
-    filePath = resolve2(outputPath);
+    filePath = resolveProjectPath(outputPath);
   } else {
     const baseDir = fallbackOutputDir(outputDir);
     const targetDir = sessionId ? join2(baseDir, sessionId) : baseDir;
     filePath = resolve2(targetDir, `imgx-${randomUUID().slice(0, 8)}${ext}`);
   }
-  mkdirSync2(dirname(filePath), { recursive: true });
+  mkdirSync2(dirname2(filePath), { recursive: true });
   writeFileSync2(filePath, image.data);
   return filePath;
 }
@@ -39365,7 +39394,6 @@ function initGemini() {
 
 // build/providers/openai/client.js
 import { readFileSync as readFileSync3 } from "node:fs";
-import { resolve as resolve3 } from "node:path";
 
 // build/providers/openai/capabilities.js
 var OPENAI_PROVIDER_INFO = {
@@ -39478,7 +39506,7 @@ var OpenAIProvider = class {
   }
   async edit(input, model) {
     const modelName = model || this.info.defaultModel;
-    const absPath = resolve3(input.inputImage);
+    const absPath = resolveProjectPath(input.inputImage);
     const imageBuffer = readFileSync3(absPath);
     const ext = absPath.split(".").pop()?.toLowerCase();
     const contentType = ext === "jpg" || ext === "jpeg" ? "image/jpeg" : ext === "webp" ? "image/webp" : "image/png";
@@ -39556,13 +39584,19 @@ import { join as join3 } from "node:path";
 import { homedir as homedir3, platform as platform2 } from "node:os";
 import { randomUUID as randomUUID2 } from "node:crypto";
 var HISTORY_FILE = "output-history.json";
-function historyDir() {
-  if (process.env.IMGX_TEST_CONFIG_DIR)
-    return process.env.IMGX_TEST_CONFIG_DIR;
+function globalHistoryDir() {
   if (platform2() === "win32") {
     return join3(process.env.APPDATA || join3(homedir3(), "AppData", "Roaming"), "imgx");
   }
   return join3(process.env.XDG_CONFIG_HOME || join3(homedir3(), ".config"), "imgx");
+}
+function historyDir() {
+  if (process.env.IMGX_TEST_CONFIG_DIR)
+    return process.env.IMGX_TEST_CONFIG_DIR;
+  const projectRoot = findProjectRoot();
+  if (projectRoot)
+    return join3(projectRoot, ".imgx");
+  return globalHistoryDir();
 }
 function historyPath() {
   return join3(historyDir(), HISTORY_FILE);
@@ -39692,6 +39726,24 @@ function clearHistory() {
   saveHistory(history);
   return { filePaths };
 }
+function clearGlobalHistory() {
+  const globalPath = join3(globalHistoryDir(), HISTORY_FILE);
+  try {
+    const raw = readFileSync4(globalPath, "utf-8");
+    const history = JSON.parse(raw);
+    const filePaths = [];
+    for (const session of history.sessions) {
+      for (const entry of session.entries)
+        filePaths.push(...entry.filePaths);
+    }
+    const dir = globalHistoryDir();
+    mkdirSync3(dir, { recursive: true });
+    writeFileSync3(globalPath, JSON.stringify(emptyHistory(), null, 2) + "\n", "utf-8");
+    return { filePaths };
+  } catch {
+    return { filePaths: [] };
+  }
+}
 function updateHistoryPaths(oldBase, newBase) {
   const history = loadHistory();
   for (const session of history.sessions) {
@@ -39706,8 +39758,8 @@ function updateHistoryPaths(oldBase, newBase) {
 }
 
 // build/cli/commands/init.js
-import { existsSync, writeFileSync as writeFileSync4 } from "node:fs";
-import { resolve as resolve4 } from "node:path";
+import { existsSync as existsSync2, writeFileSync as writeFileSync4 } from "node:fs";
+import { resolve as resolve3 } from "node:path";
 
 // build/cli/output.js
 function success(data) {
@@ -39728,8 +39780,8 @@ var TEMPLATE = {
   }
 };
 function runInit() {
-  const filePath = resolve4(".imgxrc");
-  if (existsSync(filePath)) {
+  const filePath = resolve3(".imgxrc");
+  if (existsSync2(filePath)) {
     fail(".imgxrc already exists in current directory");
   }
   writeFileSync4(filePath, JSON.stringify(TEMPLATE, null, 2) + "\n", "utf-8");
@@ -39812,8 +39864,8 @@ async function runEdit(provider, args) {
 
 // build/cli/commands/config.js
 import { createInterface } from "node:readline";
-import { existsSync as existsSync2, readdirSync, cpSync, rmSync, mkdirSync as mkdirSync4 } from "node:fs";
-import { resolve as resolve5 } from "node:path";
+import { existsSync as existsSync3, readdirSync, cpSync, rmSync, mkdirSync as mkdirSync4 } from "node:fs";
+import { resolve as resolve4 } from "node:path";
 import { homedir as homedir4 } from "node:os";
 function extractProvider(args) {
   const rest = [];
@@ -39915,8 +39967,8 @@ function setKey(key, value, provider) {
 }
 function setOutputDir(newDir, skipConfirm, noMove) {
   const config = loadConfig();
-  const oldDir = config.defaults?.outputDir || resolve5(homedir4(), "Pictures", "imgx");
-  const resolvedNew = resolve5(newDir);
+  const oldDir = config.defaults?.outputDir || resolve4(homedir4(), "Pictures", "imgx");
+  const resolvedNew = resolve4(newDir);
   if (!config.defaults)
     config.defaults = {};
   config.defaults.outputDir = resolvedNew;
@@ -39925,7 +39977,7 @@ function setOutputDir(newDir, skipConfirm, noMove) {
     success({ key: "output-dir", status: "saved", outputDir: resolvedNew });
     return;
   }
-  if (!existsSync2(oldDir)) {
+  if (!existsSync3(oldDir)) {
     success({ key: "output-dir", status: "saved", outputDir: resolvedNew });
     return;
   }
@@ -40016,8 +40068,8 @@ function showAll() {
 
 // build/cli/commands/history.js
 import { createInterface as createInterface2 } from "node:readline";
-import { rmSync as rmSync2, rmdirSync, existsSync as existsSync3 } from "node:fs";
-import { dirname as dirname2 } from "node:path";
+import { rmSync as rmSync2, rmdirSync, existsSync as existsSync4 } from "node:fs";
+import { dirname as dirname3 } from "node:path";
 function runHistory(args) {
   const sub = args[0];
   if (!sub) {
@@ -40039,7 +40091,8 @@ function runHistory(args) {
   if (sub === "clear") {
     const hasYes = args.includes("--yes");
     const hasKeepFiles = args.includes("--keep-files");
-    runClear(hasYes, hasKeepFiles);
+    const hasAll = args.includes("--all");
+    runClear(hasYes, hasKeepFiles, hasAll);
     return;
   }
   fail(`Unknown history subcommand: ${sub}. Use: switch, clear`);
@@ -40067,7 +40120,11 @@ function showHistory() {
     }))
   });
 }
-function runClear(skipConfirm, keepFiles) {
+function runClear(skipConfirm, keepFiles, clearAll) {
+  if (clearAll) {
+    runClearAll(keepFiles);
+    return;
+  }
   const result = clearHistory();
   if (keepFiles || result.filePaths.length === 0) {
     return success({ cleared: true, filesDeleted: 0 });
@@ -40087,15 +40144,33 @@ function runClear(skipConfirm, keepFiles) {
     }
   });
 }
+function runClearAll(keepFiles) {
+  const rl = createInterface2({ input: process.stdin, output: process.stderr });
+  rl.question("This will clear ALL history (project + global) across all projects. Continue? [y/N]: ", (answer) => {
+    rl.close();
+    if (answer.toLowerCase() !== "y") {
+      success({ cleared: false, message: "Aborted" });
+      return;
+    }
+    const projectResult = clearHistory();
+    const globalResult = clearGlobalHistory();
+    const allFiles = [...projectResult.filePaths, ...globalResult.filePaths];
+    if (keepFiles || allFiles.length === 0) {
+      return success({ cleared: true, scope: "all", filesDeleted: 0 });
+    }
+    const deleted = deleteSessionFiles(allFiles);
+    success({ cleared: true, scope: "all", filesDeleted: deleted });
+  });
+}
 function deleteSessionFiles(filePaths) {
   let count = 0;
   const dirs = /* @__PURE__ */ new Set();
   for (const fp of filePaths) {
     try {
-      if (existsSync3(fp)) {
+      if (existsSync4(fp)) {
         rmSync2(fp);
         count++;
-        dirs.add(dirname2(fp));
+        dirs.add(dirname3(fp));
       }
     } catch {
     }
@@ -40138,7 +40213,7 @@ function runRedo() {
 }
 
 // build/cli/index.js
-var VERSION2 = "1.0.4";
+var VERSION2 = "1.1.0";
 var HELP = `imgx v${VERSION2} \u2014 AI image generation and editing for MCP-compatible AI agents
 
 Commands:
@@ -40193,9 +40268,10 @@ Environment variables (override config file):
 History:
   imgx history                       Show all sessions and entries
   imgx history switch <session-id>   Switch to a different session
-  imgx history clear                 Clear history (with confirmation)
-  imgx history clear --yes           Clear history and delete files
-  imgx history clear --keep-files    Clear history, keep image files
+  imgx history clear                 Clear project history (with confirmation)
+  imgx history clear --yes           Clear project history and delete files
+  imgx history clear --keep-files    Clear project history, keep image files
+  imgx history clear --all           Clear ALL history across all projects (confirmation required)
 `;
 function main() {
   initGemini();

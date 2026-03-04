@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { resolveProjectPath } from "../../core/config.js";
 import type { ImageProvider } from "../../core/provider.js";
 import type {
   GenerateInput,
@@ -128,7 +128,7 @@ export class OpenAIProvider implements ImageProvider {
 
   async edit(input: EditInput, model?: string): Promise<ImageResult> {
     const modelName = model || this.info.defaultModel;
-    const absPath = resolve(input.inputImage);
+    const absPath = resolveProjectPath(input.inputImage);
     const imageBuffer = readFileSync(absPath);
     const ext = absPath.split(".").pop()?.toLowerCase();
     const contentType =

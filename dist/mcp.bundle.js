@@ -2990,7 +2990,7 @@ var require_compile = __commonJS({
       const schOrFunc = root.refs[ref];
       if (schOrFunc)
         return schOrFunc;
-      let _sch = resolve4.call(this, root, ref);
+      let _sch = resolve3.call(this, root, ref);
       if (_sch === void 0) {
         const schema = (_a3 = root.localRefs) === null || _a3 === void 0 ? void 0 : _a3[ref];
         const { schemaId } = this.opts;
@@ -3017,7 +3017,7 @@ var require_compile = __commonJS({
     function sameSchemaEnv(s1, s2) {
       return s1.schema === s2.schema && s1.root === s2.root && s1.baseId === s2.baseId;
     }
-    function resolve4(root, ref) {
+    function resolve3(root, ref) {
       let sch;
       while (typeof (sch = this.refs[ref]) == "string")
         ref = sch;
@@ -3592,7 +3592,7 @@ var require_fast_uri = __commonJS({
       }
       return uri;
     }
-    function resolve4(baseURI, relativeURI, options) {
+    function resolve3(baseURI, relativeURI, options) {
       const schemelessOptions = options ? Object.assign({ scheme: "null" }, options) : { scheme: "null" };
       const resolved = resolveComponent(parse3(baseURI, schemelessOptions), parse3(relativeURI, schemelessOptions), schemelessOptions, true);
       schemelessOptions.skipEscape = true;
@@ -3819,7 +3819,7 @@ var require_fast_uri = __commonJS({
     var fastUri = {
       SCHEMES,
       normalize,
-      resolve: resolve4,
+      resolve: resolve3,
       resolveComponent,
       equal,
       serialize,
@@ -6811,16 +6811,47 @@ var require_dist = __commonJS({
 // build/core/config.js
 var config_exports = {};
 __export(config_exports, {
+  findProjectRoot: () => findProjectRoot,
   getConfigPath: () => getConfigPath,
   loadConfig: () => loadConfig,
   loadProjectConfig: () => loadProjectConfig,
+  resetProjectRootCache: () => resetProjectRootCache,
   resolveApiKey: () => resolveApiKey,
   resolveDefault: () => resolveDefault,
+  resolveProjectPath: () => resolveProjectPath,
   saveConfig: () => saveConfig
 });
-import { readFileSync, writeFileSync, mkdirSync, chmodSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { readFileSync, writeFileSync, mkdirSync, chmodSync, existsSync } from "node:fs";
+import { dirname, isAbsolute, join, resolve } from "node:path";
 import { homedir, platform } from "node:os";
+function findProjectRoot(startDir) {
+  if (process.env.IMGX_PROJECT_ROOT)
+    return process.env.IMGX_PROJECT_ROOT;
+  if (_cachedProjectRoot !== void 0)
+    return _cachedProjectRoot;
+  let dir = resolve(startDir ?? process.cwd());
+  while (true) {
+    if (existsSync(join(dir, ".imgxrc"))) {
+      _cachedProjectRoot = dir;
+      return dir;
+    }
+    const parent = dirname(dir);
+    if (parent === dir)
+      break;
+    dir = parent;
+  }
+  _cachedProjectRoot = null;
+  return null;
+}
+function resetProjectRootCache() {
+  _cachedProjectRoot = void 0;
+}
+function resolveProjectPath(relativePath) {
+  if (isAbsolute(relativePath))
+    return relativePath;
+  const root = findProjectRoot();
+  return resolve(root ?? process.cwd(), relativePath);
+}
 function configDir() {
   if (platform() === "win32") {
     return join(process.env.APPDATA || join(homedir(), "AppData", "Roaming"), "imgx");
@@ -6861,8 +6892,11 @@ function resolveApiKey(providerName) {
   return config2.providers?.[providerName]?.apiKey;
 }
 function loadProjectConfig() {
+  const root = findProjectRoot();
+  if (!root)
+    return {};
   try {
-    const raw = readFileSync(resolve(".imgxrc"), "utf-8");
+    const raw = readFileSync(join(root, ".imgxrc"), "utf-8");
     return JSON.parse(raw);
   } catch {
     return {};
@@ -6885,6 +6919,7 @@ function resolveDefault(key) {
 function getConfigPath() {
   return configPath();
 }
+var _cachedProjectRoot;
 var init_config = __esm({
   "build/core/config.js"() {
     "use strict";
@@ -7155,7 +7190,7 @@ var require_p_retry = __commonJS({
       return error48;
     };
     var isNetworkError = (errorMessage) => networkErrorMsgs.includes(errorMessage);
-    var pRetry2 = (input, options) => new Promise((resolve4, reject) => {
+    var pRetry2 = (input, options) => new Promise((resolve3, reject) => {
       options = {
         onFailedAttempt: () => {
         },
@@ -7165,7 +7200,7 @@ var require_p_retry = __commonJS({
       const operation = retry.operation(options);
       operation.attempt(async (attemptNumber) => {
         try {
-          resolve4(await input(attemptNumber));
+          resolve3(await input(attemptNumber));
         } catch (error48) {
           if (!(error48 instanceof Error)) {
             reject(new TypeError(`Non-error was thrown: "${error48}". You should only throw errors.`));
@@ -7702,8 +7737,8 @@ var require_retry3 = __commonJS({
       }
       const delay = getNextRetryDelay(config2);
       err.config.retryConfig.currentRetryAttempt += 1;
-      const backoff = config2.retryBackoff ? config2.retryBackoff(err, delay) : new Promise((resolve4) => {
-        setTimeout(resolve4, delay);
+      const backoff = config2.retryBackoff ? config2.retryBackoff(err, delay) : new Promise((resolve3) => {
+        setTimeout(resolve3, delay);
       });
       if (config2.onRetryAttempt) {
         await config2.onRetryAttempt(err);
@@ -8479,8 +8514,8 @@ var require_helpers = __commonJS({
     function req(url2, opts = {}) {
       const href = typeof url2 === "string" ? url2 : url2.href;
       const req2 = (href.startsWith("https:") ? https2 : http3).request(url2, opts);
-      const promise2 = new Promise((resolve4, reject) => {
-        req2.once("response", resolve4).once("error", reject).end();
+      const promise2 = new Promise((resolve3, reject) => {
+        req2.once("response", resolve3).once("error", reject).end();
       });
       req2.then = promise2.then.bind(promise2);
       return req2;
@@ -8657,7 +8692,7 @@ var require_parse_proxy_response = __commonJS({
     var debug_1 = __importDefault(require_src());
     var debug = (0, debug_1.default)("https-proxy-agent:parse-proxy-response");
     function parseProxyResponse(socket) {
-      return new Promise((resolve4, reject) => {
+      return new Promise((resolve3, reject) => {
         let buffersLength = 0;
         const buffers = [];
         function read() {
@@ -8723,7 +8758,7 @@ var require_parse_proxy_response = __commonJS({
           }
           debug("got proxy server response: %o %o", firstLine, headers);
           cleanup();
-          resolve4({
+          resolve3({
             connect: {
               statusCode,
               statusText,
@@ -8965,7 +9000,7 @@ var require_ponyfill_es2018 = __commonJS({
         return new originalPromise(executor);
       }
       function promiseResolvedWith(value) {
-        return newPromise((resolve4) => resolve4(value));
+        return newPromise((resolve3) => resolve3(value));
       }
       function promiseRejectedWith(reason) {
         return originalPromiseReject(reason);
@@ -9135,8 +9170,8 @@ var require_ponyfill_es2018 = __commonJS({
         return new TypeError("Cannot " + name + " a stream using a released reader");
       }
       function defaultReaderClosedPromiseInitialize(reader) {
-        reader._closedPromise = newPromise((resolve4, reject) => {
-          reader._closedPromise_resolve = resolve4;
+        reader._closedPromise = newPromise((resolve3, reject) => {
+          reader._closedPromise_resolve = resolve3;
           reader._closedPromise_reject = reject;
         });
       }
@@ -9310,8 +9345,8 @@ var require_ponyfill_es2018 = __commonJS({
           }
           let resolvePromise;
           let rejectPromise;
-          const promise2 = newPromise((resolve4, reject) => {
-            resolvePromise = resolve4;
+          const promise2 = newPromise((resolve3, reject) => {
+            resolvePromise = resolve3;
             rejectPromise = reject;
           });
           const readRequest = {
@@ -9416,8 +9451,8 @@ var require_ponyfill_es2018 = __commonJS({
           const reader = this._reader;
           let resolvePromise;
           let rejectPromise;
-          const promise2 = newPromise((resolve4, reject) => {
-            resolvePromise = resolve4;
+          const promise2 = newPromise((resolve3, reject) => {
+            resolvePromise = resolve3;
             rejectPromise = reject;
           });
           const readRequest = {
@@ -10436,8 +10471,8 @@ var require_ponyfill_es2018 = __commonJS({
           }
           let resolvePromise;
           let rejectPromise;
-          const promise2 = newPromise((resolve4, reject) => {
-            resolvePromise = resolve4;
+          const promise2 = newPromise((resolve3, reject) => {
+            resolvePromise = resolve3;
             rejectPromise = reject;
           });
           const readIntoRequest = {
@@ -10749,10 +10784,10 @@ var require_ponyfill_es2018 = __commonJS({
           wasAlreadyErroring = true;
           reason = void 0;
         }
-        const promise2 = newPromise((resolve4, reject) => {
+        const promise2 = newPromise((resolve3, reject) => {
           stream._pendingAbortRequest = {
             _promise: void 0,
-            _resolve: resolve4,
+            _resolve: resolve3,
             _reject: reject,
             _reason: reason,
             _wasAlreadyErroring: wasAlreadyErroring
@@ -10769,9 +10804,9 @@ var require_ponyfill_es2018 = __commonJS({
         if (state === "closed" || state === "errored") {
           return promiseRejectedWith(new TypeError(`The stream (in ${state} state) is not in the writable state and cannot be closed`));
         }
-        const promise2 = newPromise((resolve4, reject) => {
+        const promise2 = newPromise((resolve3, reject) => {
           const closeRequest = {
-            _resolve: resolve4,
+            _resolve: resolve3,
             _reject: reject
           };
           stream._closeRequest = closeRequest;
@@ -10784,9 +10819,9 @@ var require_ponyfill_es2018 = __commonJS({
         return promise2;
       }
       function WritableStreamAddWriteRequest(stream) {
-        const promise2 = newPromise((resolve4, reject) => {
+        const promise2 = newPromise((resolve3, reject) => {
           const writeRequest = {
-            _resolve: resolve4,
+            _resolve: resolve3,
             _reject: reject
           };
           stream._writeRequests.push(writeRequest);
@@ -11402,8 +11437,8 @@ var require_ponyfill_es2018 = __commonJS({
         return new TypeError("Cannot " + name + " a stream using a released writer");
       }
       function defaultWriterClosedPromiseInitialize(writer) {
-        writer._closedPromise = newPromise((resolve4, reject) => {
-          writer._closedPromise_resolve = resolve4;
+        writer._closedPromise = newPromise((resolve3, reject) => {
+          writer._closedPromise_resolve = resolve3;
           writer._closedPromise_reject = reject;
           writer._closedPromiseState = "pending";
         });
@@ -11439,8 +11474,8 @@ var require_ponyfill_es2018 = __commonJS({
         writer._closedPromiseState = "resolved";
       }
       function defaultWriterReadyPromiseInitialize(writer) {
-        writer._readyPromise = newPromise((resolve4, reject) => {
-          writer._readyPromise_resolve = resolve4;
+        writer._readyPromise = newPromise((resolve3, reject) => {
+          writer._readyPromise_resolve = resolve3;
           writer._readyPromise_reject = reject;
         });
         writer._readyPromiseState = "pending";
@@ -11527,7 +11562,7 @@ var require_ponyfill_es2018 = __commonJS({
         source._disturbed = true;
         let shuttingDown = false;
         let currentWrite = promiseResolvedWith(void 0);
-        return newPromise((resolve4, reject) => {
+        return newPromise((resolve3, reject) => {
           let abortAlgorithm;
           if (signal !== void 0) {
             abortAlgorithm = () => {
@@ -11672,7 +11707,7 @@ var require_ponyfill_es2018 = __commonJS({
             if (isError) {
               reject(error48);
             } else {
-              resolve4(void 0);
+              resolve3(void 0);
             }
             return null;
           }
@@ -11953,8 +11988,8 @@ var require_ponyfill_es2018 = __commonJS({
         let branch1;
         let branch2;
         let resolveCancelPromise;
-        const cancelPromise = newPromise((resolve4) => {
-          resolveCancelPromise = resolve4;
+        const cancelPromise = newPromise((resolve3) => {
+          resolveCancelPromise = resolve3;
         });
         function pullAlgorithm() {
           if (reading) {
@@ -12045,8 +12080,8 @@ var require_ponyfill_es2018 = __commonJS({
         let branch1;
         let branch2;
         let resolveCancelPromise;
-        const cancelPromise = newPromise((resolve4) => {
-          resolveCancelPromise = resolve4;
+        const cancelPromise = newPromise((resolve3) => {
+          resolveCancelPromise = resolve3;
         });
         function forwardReaderError(thisReader) {
           uponRejection(thisReader._closedPromise, (r2) => {
@@ -12826,8 +12861,8 @@ var require_ponyfill_es2018 = __commonJS({
           const writableHighWaterMark = ExtractHighWaterMark(writableStrategy, 1);
           const writableSizeAlgorithm = ExtractSizeAlgorithm(writableStrategy);
           let startPromise_resolve;
-          const startPromise = newPromise((resolve4) => {
-            startPromise_resolve = resolve4;
+          const startPromise = newPromise((resolve3) => {
+            startPromise_resolve = resolve3;
           });
           InitializeTransformStream(this, startPromise, writableHighWaterMark, writableSizeAlgorithm, readableHighWaterMark, readableSizeAlgorithm);
           SetUpTransformStreamDefaultControllerFromTransformer(this, transformer);
@@ -12920,8 +12955,8 @@ var require_ponyfill_es2018 = __commonJS({
         if (stream._backpressureChangePromise !== void 0) {
           stream._backpressureChangePromise_resolve();
         }
-        stream._backpressureChangePromise = newPromise((resolve4) => {
-          stream._backpressureChangePromise_resolve = resolve4;
+        stream._backpressureChangePromise = newPromise((resolve3) => {
+          stream._backpressureChangePromise_resolve = resolve3;
         });
         stream._backpressure = backpressure;
       }
@@ -13089,8 +13124,8 @@ var require_ponyfill_es2018 = __commonJS({
           return controller._finishPromise;
         }
         const readable = stream._readable;
-        controller._finishPromise = newPromise((resolve4, reject) => {
-          controller._finishPromise_resolve = resolve4;
+        controller._finishPromise = newPromise((resolve3, reject) => {
+          controller._finishPromise_resolve = resolve3;
           controller._finishPromise_reject = reject;
         });
         const cancelPromise = controller._cancelAlgorithm(reason);
@@ -13116,8 +13151,8 @@ var require_ponyfill_es2018 = __commonJS({
           return controller._finishPromise;
         }
         const readable = stream._readable;
-        controller._finishPromise = newPromise((resolve4, reject) => {
-          controller._finishPromise_resolve = resolve4;
+        controller._finishPromise = newPromise((resolve3, reject) => {
+          controller._finishPromise_resolve = resolve3;
           controller._finishPromise_reject = reject;
         });
         const flushPromise = controller._flushAlgorithm();
@@ -13147,8 +13182,8 @@ var require_ponyfill_es2018 = __commonJS({
           return controller._finishPromise;
         }
         const writable = stream._writable;
-        controller._finishPromise = newPromise((resolve4, reject) => {
-          controller._finishPromise_resolve = resolve4;
+        controller._finishPromise = newPromise((resolve3, reject) => {
+          controller._finishPromise_resolve = resolve3;
           controller._finishPromise_reject = reject;
         });
         const cancelPromise = controller._cancelAlgorithm(reason);
@@ -15099,7 +15134,7 @@ import zlib from "node:zlib";
 import Stream2, { PassThrough as PassThrough2, pipeline as pump } from "node:stream";
 import { Buffer as Buffer3 } from "node:buffer";
 async function fetch2(url2, options_) {
-  return new Promise((resolve4, reject) => {
+  return new Promise((resolve3, reject) => {
     const request = new Request(url2, options_);
     const { parsedURL, options } = getNodeRequestOptions(request);
     if (!supportedSchemas.has(parsedURL.protocol)) {
@@ -15108,7 +15143,7 @@ async function fetch2(url2, options_) {
     if (parsedURL.protocol === "data:") {
       const data = dist_default(request.url);
       const response2 = new Response2(data, { headers: { "Content-Type": data.typeFull } });
-      resolve4(response2);
+      resolve3(response2);
       return;
     }
     const send = (parsedURL.protocol === "https:" ? https : http2).request;
@@ -15230,7 +15265,7 @@ async function fetch2(url2, options_) {
             if (responseReferrerPolicy) {
               requestOptions.referrerPolicy = responseReferrerPolicy;
             }
-            resolve4(fetch2(new Request(locationURL, requestOptions)));
+            resolve3(fetch2(new Request(locationURL, requestOptions)));
             finalize2();
             return;
           }
@@ -15263,7 +15298,7 @@ async function fetch2(url2, options_) {
       const codings = headers.get("Content-Encoding");
       if (!request.compress || request.method === "HEAD" || codings === null || response_.statusCode === 204 || response_.statusCode === 304) {
         response = new Response2(body, responseOptions);
-        resolve4(response);
+        resolve3(response);
         return;
       }
       const zlibOptions = {
@@ -15277,7 +15312,7 @@ async function fetch2(url2, options_) {
           }
         });
         response = new Response2(body, responseOptions);
-        resolve4(response);
+        resolve3(response);
         return;
       }
       if (codings === "deflate" || codings === "x-deflate") {
@@ -15301,12 +15336,12 @@ async function fetch2(url2, options_) {
             });
           }
           response = new Response2(body, responseOptions);
-          resolve4(response);
+          resolve3(response);
         });
         raw.once("end", () => {
           if (!response) {
             response = new Response2(body, responseOptions);
-            resolve4(response);
+            resolve3(response);
           }
         });
         return;
@@ -15318,11 +15353,11 @@ async function fetch2(url2, options_) {
           }
         });
         response = new Response2(body, responseOptions);
-        resolve4(response);
+        resolve3(response);
         return;
       }
       response = new Response2(body, responseOptions);
-      resolve4(response);
+      resolve3(response);
     });
     writeToStream(request_, request).catch(reject);
   });
@@ -21392,7 +21427,7 @@ var require_jwtaccess = __commonJS({
         }
       }
       fromStreamAsync(inputStream) {
-        return new Promise((resolve4, reject) => {
+        return new Promise((resolve3, reject) => {
           if (!inputStream) {
             reject(new Error("Must pass in a stream containing the service account auth settings."));
           }
@@ -21401,7 +21436,7 @@ var require_jwtaccess = __commonJS({
             try {
               const data = JSON.parse(s2);
               this.fromJSON(data);
-              resolve4();
+              resolve3();
             } catch (err) {
               reject(err);
             }
@@ -21640,7 +21675,7 @@ var require_jwtclient = __commonJS({
         }
       }
       fromStreamAsync(inputStream) {
-        return new Promise((resolve4, reject) => {
+        return new Promise((resolve3, reject) => {
           if (!inputStream) {
             throw new Error("Must pass in a stream containing the service account auth settings.");
           }
@@ -21649,7 +21684,7 @@ var require_jwtclient = __commonJS({
             try {
               const data = JSON.parse(s2);
               this.fromJSON(data);
-              resolve4();
+              resolve3();
             } catch (e2) {
               reject(e2);
             }
@@ -21782,7 +21817,7 @@ var require_refreshclient = __commonJS({
         }
       }
       async fromStreamAsync(inputStream) {
-        return new Promise((resolve4, reject) => {
+        return new Promise((resolve3, reject) => {
           if (!inputStream) {
             return reject(new Error("Must pass in a stream containing the user refresh token."));
           }
@@ -21791,7 +21826,7 @@ var require_refreshclient = __commonJS({
             try {
               const data = JSON.parse(s2);
               this.fromJSON(data);
-              return resolve4();
+              return resolve3();
             } catch (err) {
               return reject(err);
             }
@@ -23624,7 +23659,7 @@ var require_pluggable_auth_handler = __commonJS({
        * @return A promise that resolves with the executable response.
        */
       retrieveResponseFromExecutable(envMap) {
-        return new Promise((resolve4, reject) => {
+        return new Promise((resolve3, reject) => {
           const child = childProcess.spawn(this.commandComponents[0], this.commandComponents.slice(1), {
             env: { ...process.env, ...Object.fromEntries(envMap) }
           });
@@ -23646,7 +23681,7 @@ var require_pluggable_auth_handler = __commonJS({
               try {
                 const responseJson = JSON.parse(output);
                 const response = new executable_response_1.ExecutableResponse(responseJson);
-                return resolve4(response);
+                return resolve3(response);
               } catch (error48) {
                 if (error48 instanceof executable_response_1.ExecutableResponseError) {
                   return reject(error48);
@@ -24549,7 +24584,7 @@ var require_googleauth = __commonJS({
         }
       }
       fromStreamAsync(inputStream, options) {
-        return new Promise((resolve4, reject) => {
+        return new Promise((resolve3, reject) => {
           if (!inputStream) {
             throw new Error("Must pass in a stream containing the Google auth settings.");
           }
@@ -24559,7 +24594,7 @@ var require_googleauth = __commonJS({
               try {
                 const data = JSON.parse(chunks.join(""));
                 const r2 = this._cacheClientFromJSON(data, options);
-                return resolve4(r2);
+                return resolve3(r2);
               } catch (err) {
                 if (!this.keyFilename)
                   throw err;
@@ -24569,7 +24604,7 @@ var require_googleauth = __commonJS({
                 });
                 this.cachedCredential = client;
                 this.setGapicJWTValues(client);
-                return resolve4(client);
+                return resolve3(client);
               }
             } catch (err) {
               return reject(err);
@@ -24605,17 +24640,17 @@ var require_googleauth = __commonJS({
        * Run the Google Cloud SDK command that prints the default project ID
        */
       async getDefaultServiceProjectId() {
-        return new Promise((resolve4) => {
+        return new Promise((resolve3) => {
           (0, child_process_1.exec)("gcloud config config-helper --format json", (err, stdout) => {
             if (!err && stdout) {
               try {
                 const projectId = JSON.parse(stdout).configuration.properties.core.project;
-                resolve4(projectId);
+                resolve3(projectId);
                 return;
               } catch (e2) {
               }
             }
-            resolve4(null);
+            resolve3(null);
           });
         });
       }
@@ -28884,11 +28919,13 @@ var require_websocket_server = __commonJS({
 // build/core/history.js
 var history_exports = {};
 __export(history_exports, {
+  clearGlobalHistory: () => clearGlobalHistory,
   clearHistory: () => clearHistory,
   createSession: () => createSession,
   getActiveEntry: () => getActiveEntry,
   getActiveSessionOutputDir: () => getActiveSessionOutputDir,
   getHistory: () => getHistory,
+  globalHistoryDir: () => globalHistoryDir,
   loadHistory: () => loadHistory,
   pushHistory: () => pushHistory,
   redoHistory: () => redoHistory,
@@ -28901,13 +28938,19 @@ import { readFileSync as readFileSync4, writeFileSync as writeFileSync3, mkdirSy
 import { join as join3 } from "node:path";
 import { homedir as homedir3, platform as platform2 } from "node:os";
 import { randomUUID as randomUUID2 } from "node:crypto";
-function historyDir() {
-  if (process.env.IMGX_TEST_CONFIG_DIR)
-    return process.env.IMGX_TEST_CONFIG_DIR;
+function globalHistoryDir() {
   if (platform2() === "win32") {
     return join3(process.env.APPDATA || join3(homedir3(), "AppData", "Roaming"), "imgx");
   }
   return join3(process.env.XDG_CONFIG_HOME || join3(homedir3(), ".config"), "imgx");
+}
+function historyDir() {
+  if (process.env.IMGX_TEST_CONFIG_DIR)
+    return process.env.IMGX_TEST_CONFIG_DIR;
+  const projectRoot = findProjectRoot();
+  if (projectRoot)
+    return join3(projectRoot, ".imgx");
+  return globalHistoryDir();
 }
 function historyPath() {
   return join3(historyDir(), HISTORY_FILE);
@@ -29044,6 +29087,24 @@ function clearHistory() {
   saveHistory(history);
   return { filePaths };
 }
+function clearGlobalHistory() {
+  const globalPath = join3(globalHistoryDir(), HISTORY_FILE);
+  try {
+    const raw = readFileSync4(globalPath, "utf-8");
+    const history = JSON.parse(raw);
+    const filePaths = [];
+    for (const session of history.sessions) {
+      for (const entry of session.entries)
+        filePaths.push(...entry.filePaths);
+    }
+    const dir = globalHistoryDir();
+    mkdirSync3(dir, { recursive: true });
+    writeFileSync3(globalPath, JSON.stringify(emptyHistory(), null, 2) + "\n", "utf-8");
+    return { filePaths };
+  } catch {
+    return { filePaths: [] };
+  }
+}
 function updateHistoryPaths(oldBase, newBase) {
   const history = loadHistory();
   for (const session of history.sessions) {
@@ -29060,6 +29121,7 @@ var HISTORY_FILE;
 var init_history = __esm({
   "build/core/history.js"() {
     "use strict";
+    init_config();
     HISTORY_FILE = "output-history.json";
   }
 });
@@ -50239,7 +50301,7 @@ var Protocol = class {
           return;
         }
         const pollInterval = task2.pollInterval ?? this._options?.defaultTaskPollInterval ?? 1e3;
-        await new Promise((resolve4) => setTimeout(resolve4, pollInterval));
+        await new Promise((resolve3) => setTimeout(resolve3, pollInterval));
         options?.signal?.throwIfAborted();
       }
     } catch (error48) {
@@ -50256,7 +50318,7 @@ var Protocol = class {
    */
   request(request, resultSchema, options) {
     const { relatedRequestId, resumptionToken, onresumptiontoken, task, relatedTask } = options ?? {};
-    return new Promise((resolve4, reject) => {
+    return new Promise((resolve3, reject) => {
       const earlyReject = (error48) => {
         reject(error48);
       };
@@ -50334,7 +50396,7 @@ var Protocol = class {
           if (!parseResult.success) {
             reject(parseResult.error);
           } else {
-            resolve4(parseResult.data);
+            resolve3(parseResult.data);
           }
         } catch (error48) {
           reject(error48);
@@ -50595,12 +50657,12 @@ var Protocol = class {
       }
     } catch {
     }
-    return new Promise((resolve4, reject) => {
+    return new Promise((resolve3, reject) => {
       if (signal.aborted) {
         reject(new McpError(ErrorCode.InvalidRequest, "Request cancelled"));
         return;
       }
-      const timeoutId = setTimeout(resolve4, interval);
+      const timeoutId = setTimeout(resolve3, interval);
       signal.addEventListener("abort", () => {
         clearTimeout(timeoutId);
         reject(new McpError(ErrorCode.InvalidRequest, "Request cancelled"));
@@ -51700,7 +51762,7 @@ var McpServer = class {
     let task = createTaskResult.task;
     const pollInterval = task.pollInterval ?? 5e3;
     while (task.status !== "completed" && task.status !== "failed" && task.status !== "cancelled") {
-      await new Promise((resolve4) => setTimeout(resolve4, pollInterval));
+      await new Promise((resolve3) => setTimeout(resolve3, pollInterval));
       const updatedTask = await extra.taskStore.getTask(taskId);
       if (!updatedTask) {
         throw new McpError(ErrorCode.InternalError, `Task ${taskId} not found during polling`);
@@ -52343,12 +52405,12 @@ var StdioServerTransport = class {
     this.onclose?.();
   }
   send(message) {
-    return new Promise((resolve4) => {
+    return new Promise((resolve3) => {
       const json2 = serializeMessage(message);
       if (this._stdout.write(json2)) {
-        resolve4();
+        resolve3();
       } else {
-        this._stdout.once("drain", resolve4);
+        this._stdout.once("drain", resolve3);
       }
     });
   }
@@ -57134,14 +57196,14 @@ function __asyncValues(o) {
   }, i2);
   function verb(n) {
     i2[n] = o[n] && function(v) {
-      return new Promise(function(resolve4, reject) {
-        v = o[n](v), settle(resolve4, reject, v.done, v.value);
+      return new Promise(function(resolve3, reject) {
+        v = o[n](v), settle(resolve3, reject, v.done, v.value);
       });
     };
   }
-  function settle(resolve4, reject, d, v) {
+  function settle(resolve3, reject, d, v) {
     Promise.resolve(v).then(function(v2) {
-      resolve4({ value: v2, done: d });
+      resolve3({ value: v2, done: d });
     }, reject);
   }
 }
@@ -63112,8 +63174,8 @@ var LiveMusic = class {
     const url2 = `${websocketBaseUrl}/ws/google.ai.generativelanguage.${apiVersion}.GenerativeService.BidiGenerateMusic?key=${apiKey}`;
     let onopenResolve = () => {
     };
-    const onopenPromise = new Promise((resolve4) => {
-      onopenResolve = resolve4;
+    const onopenPromise = new Promise((resolve3) => {
+      onopenResolve = resolve3;
     });
     const callbacks = params.callbacks;
     const onopenAwaitedCallback = function() {
@@ -63353,8 +63415,8 @@ var Live = class {
     }
     let onopenResolve = () => {
     };
-    const onopenPromise = new Promise((resolve4) => {
-      onopenResolve = resolve4;
+    const onopenPromise = new Promise((resolve3) => {
+      onopenResolve = resolve3;
     });
     const callbacks = params.callbacks;
     const onopenAwaitedCallback = function() {
@@ -66296,7 +66358,7 @@ var safeJSON = (text) => {
     return void 0;
   }
 };
-var sleep$1 = (ms) => new Promise((resolve4) => setTimeout(resolve4, ms));
+var sleep$1 = (ms) => new Promise((resolve3) => setTimeout(resolve3, ms));
 var VERSION = "0.0.1";
 function getDetectedPlatform() {
   if (typeof Deno !== "undefined" && Deno.build != null) {
@@ -67216,8 +67278,8 @@ async function defaultParseResponse(client, props) {
 }
 var APIPromise = class _APIPromise extends Promise {
   constructor(client, responsePromise, parseResponse = defaultParseResponse) {
-    super((resolve4) => {
-      resolve4(null);
+    super((resolve3) => {
+      resolve3(null);
     });
     this.responsePromise = responsePromise;
     this.parseResponse = parseResponse;
@@ -69449,7 +69511,7 @@ function getApiKeyFromEnv() {
 // build/core/storage.js
 init_config();
 import { readFileSync as readFileSync2, writeFileSync as writeFileSync2, mkdirSync as mkdirSync2 } from "node:fs";
-import { dirname, join as join2, resolve as resolve2 } from "node:path";
+import { dirname as dirname2, join as join2, resolve as resolve2 } from "node:path";
 import { randomUUID } from "node:crypto";
 import { homedir as homedir2 } from "node:os";
 var MIME_TO_EXT = {
@@ -69458,7 +69520,7 @@ var MIME_TO_EXT = {
   "image/webp": ".webp"
 };
 function readImageAsBase64(filePath) {
-  const absPath = resolve2(filePath);
+  const absPath = resolveProjectPath(filePath);
   const buffer = readFileSync2(absPath);
   const ext = filePath.split(".").pop()?.toLowerCase();
   const mimeType = ext === "jpg" || ext === "jpeg" ? "image/jpeg" : ext === "webp" ? "image/webp" : "image/png";
@@ -69466,7 +69528,7 @@ function readImageAsBase64(filePath) {
 }
 function fallbackOutputDir(outputDir) {
   if (outputDir)
-    return outputDir;
+    return resolveProjectPath(outputDir);
   const configured = resolveDefault("outputDir");
   if (configured)
     return configured;
@@ -69476,13 +69538,13 @@ function saveImage(image, outputPath, outputDir, sessionId) {
   const ext = MIME_TO_EXT[image.mimeType] || ".png";
   let filePath;
   if (outputPath) {
-    filePath = resolve2(outputPath);
+    filePath = resolveProjectPath(outputPath);
   } else {
     const baseDir = fallbackOutputDir(outputDir);
     const targetDir = sessionId ? join2(baseDir, sessionId) : baseDir;
     filePath = resolve2(targetDir, `imgx-${randomUUID().slice(0, 8)}${ext}`);
   }
-  mkdirSync2(dirname(filePath), { recursive: true });
+  mkdirSync2(dirname2(filePath), { recursive: true });
   writeFileSync2(filePath, image.data);
   return filePath;
 }
@@ -69621,8 +69683,8 @@ function initGemini() {
 init_config();
 
 // build/providers/openai/client.js
+init_config();
 import { readFileSync as readFileSync3 } from "node:fs";
-import { resolve as resolve3 } from "node:path";
 
 // build/providers/openai/capabilities.js
 var OPENAI_PROVIDER_INFO = {
@@ -69735,7 +69797,7 @@ var OpenAIProvider = class {
   }
   async edit(input, model) {
     const modelName = model || this.info.defaultModel;
-    const absPath = resolve3(input.inputImage);
+    const absPath = resolveProjectPath(input.inputImage);
     const imageBuffer = readFileSync3(absPath);
     const ext = absPath.split(".").pop()?.toLowerCase();
     const contentType = ext === "jpg" || ext === "jpeg" ? "image/jpeg" : ext === "webp" ? "image/webp" : "image/png";
@@ -69820,7 +69882,7 @@ function buildImageContent(images, paths, extra) {
 }
 var server = new McpServer({
   name: "imgx",
-  version: "1.0.4"
+  version: "1.1.0"
 });
 initGemini();
 initOpenAI();
@@ -70034,20 +70096,20 @@ server.tool("switch_session", "Switch to a different editing session to continue
     return { content: [{ type: "text", text: `Error: ${err instanceof Error ? err.message : String(err)}` }] };
   }
 });
-server.tool("clear_history", "Clear all edit history. Optionally delete image files.", { delete_files: external_exports3.boolean().optional().default(false).describe("Delete image files in session directories") }, async (args) => {
+server.tool("clear_history", "Clear edit history for the current project. Optionally delete image files.", { delete_files: external_exports3.boolean().optional().default(false).describe("Delete image files in session directories") }, async (args) => {
   try {
     const result = clearHistory();
     let filesDeleted = 0;
     if (args.delete_files) {
-      const { existsSync, rmSync, rmdirSync } = await import("node:fs");
-      const { dirname: dirname2 } = await import("node:path");
+      const { existsSync: existsSync2, rmSync, rmdirSync } = await import("node:fs");
+      const { dirname: dirname3 } = await import("node:path");
       const dirs = /* @__PURE__ */ new Set();
       for (const fp of result.filePaths) {
         try {
-          if (existsSync(fp)) {
+          if (existsSync2(fp)) {
             rmSync(fp);
             filesDeleted++;
-            dirs.add(dirname2(fp));
+            dirs.add(dirname3(fp));
           }
         } catch {
         }
@@ -70071,17 +70133,17 @@ server.tool("set_output_dir", "Change the default output directory for generated
   try {
     const { loadConfig: loadConfig2, saveConfig: saveConfig2 } = await Promise.resolve().then(() => (init_config(), config_exports));
     const { updateHistoryPaths: updateHistoryPaths2 } = await Promise.resolve().then(() => (init_history(), history_exports));
-    const { resolve: resolve4 } = await import("node:path");
+    const { resolve: resolve3 } = await import("node:path");
     const { homedir: homedir4 } = await import("node:os");
     const config2 = loadConfig2();
-    const oldDir = config2.defaults?.outputDir || resolve4(homedir4(), "Pictures", "imgx");
+    const oldDir = config2.defaults?.outputDir || resolve3(homedir4(), "Pictures", "imgx");
     if (!config2.defaults)
       config2.defaults = {};
     config2.defaults.outputDir = args.path;
     saveConfig2(config2);
     if (args.move_files && oldDir !== args.path) {
-      const { mkdirSync: mkdirSync4, cpSync, rmSync, existsSync } = await import("node:fs");
-      if (existsSync(oldDir)) {
+      const { mkdirSync: mkdirSync4, cpSync, rmSync, existsSync: existsSync2 } = await import("node:fs");
+      if (existsSync2(oldDir)) {
         mkdirSync4(args.path, { recursive: true });
         cpSync(oldDir, args.path, { recursive: true });
         rmSync(oldDir, { recursive: true, force: true });
