@@ -388,13 +388,19 @@ Or create manually:
 
 Project config is shared via Git. Do not put API keys in `.imgxrc`.
 
-When used via MCP (Claude Code, etc.), imgx-mcp automatically detects the project root from the client's workspace via MCP roots. When `.imgxrc` is present, that directory is used as the project root (CLI fallback). You can also set `IMGX_PROJECT_ROOT` environment variable explicitly. For environments where CWD-based detection does not work (e.g. Claude Desktop), set the project root in user config:
+There are three ways to set the project root, depending on your environment:
 
-```bash
-imgx config set project-root /path/to/project
+**1. Client config (per-client, highest priority)** — Set `IMGX_PROJECT_ROOT` in the MCP client's environment. In Claude Desktop, add it to the `env` section of `claude_desktop_config.json`. This setting applies only to that client.
+
+```json
+"env": { "GEMINI_API_KEY": "your-key", "IMGX_PROJECT_ROOT": "/path/to/project" }
 ```
 
-Detection priority: `IMGX_PROJECT_ROOT` env var > MCP roots > `.imgxrc` upward search > user config `projectRoot`.
+**2. imgx user config (shared across all clients)** — Run `imgx config set project-root /path/to/project`. Stored in `~/.config/imgx/config.json` (or `%APPDATA%\imgx\config.json` on Windows). Applies to all MCP clients and CLI on this machine.
+
+**3. Auto-detection** — Works automatically when the working directory is inside the project (CLI, Claude Code). Detects via MCP roots or `.imgxrc` upward search. Does not work in Claude Desktop, where the working directory is the application install path.
+
+Detection priority: client env var > MCP roots > `.imgxrc` upward search > imgx user config.
 
 History is saved to `<project-root>/.imgx/output-history.json` (project-scoped, not shared with other projects). Default image output goes to `<project-root>/.imgx/<session-id>/`. Relative paths in `output` and `output_dir` are resolved against the project root instead of the MCP server's working directory.
 
