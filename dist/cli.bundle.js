@@ -22071,11 +22071,6 @@ function findProjectRoot(startDir) {
       break;
     dir = parent;
   }
-  const config = loadConfig();
-  if (config.projectRoot) {
-    _cachedProjectRoot = config.projectRoot;
-    return config.projectRoot;
-  }
   _cachedProjectRoot = null;
   return null;
 }
@@ -39963,7 +39958,7 @@ function runConfig(args) {
     const key = filtered[0];
     const value = filtered[1];
     if (!key || !value) {
-      fail("Usage: imgx config set <key> <value> [--provider <name>]\n  Keys: api-key, provider, model, output-dir, aspect-ratio, resolution, project-root");
+      fail("Usage: imgx config set <key> <value> [--provider <name>]\n  Keys: api-key, provider, model, output-dir, aspect-ratio, resolution");
     }
     if (key === "output-dir") {
       setOutputDir(value, hasYes, hasNoMove);
@@ -40028,12 +40023,8 @@ function setKey(key, value, provider) {
       config.defaults.resolution = value;
       break;
     }
-    case "project-root": {
-      config.projectRoot = value;
-      break;
-    }
     default:
-      fail(`Unknown key: ${key}. Valid keys: api-key, provider, model, output-dir, aspect-ratio, resolution, project-root`);
+      fail(`Unknown key: ${key}. Valid keys: api-key, provider, model, output-dir, aspect-ratio, resolution`);
   }
   saveConfig(config);
   success({ key, status: "saved" });
@@ -40119,11 +40110,8 @@ function getKey(key, provider) {
     case "resolution":
       success({ key, value: config.defaults?.resolution ?? null });
       return;
-    case "project-root":
-      success({ key, value: config.projectRoot ?? null });
-      return;
     default:
-      fail(`Unknown key: ${key}. Valid keys: api-key, provider, model, output-dir, aspect-ratio, resolution, project-root`);
+      fail(`Unknown key: ${key}. Valid keys: api-key, provider, model, output-dir, aspect-ratio, resolution`);
   }
 }
 function showAll() {
@@ -40293,7 +40281,7 @@ function runRedo() {
 }
 
 // build/cli/index.js
-var VERSION2 = "1.5.0";
+var VERSION2 = "1.4.1";
 var HELP = `imgx v${VERSION2} \u2014 AI image generation and editing for MCP-compatible AI agents
 
 Commands:

@@ -1,20 +1,5 @@
 # Changelog
 
-## 1.5.0 (2026-03-05)
-
-### Added
-
-- **User config `projectRoot` fallback** — `findProjectRoot()` now checks `projectRoot` in user config (`~/.config/imgx/config.json` or `%APPDATA%\imgx\config.json`) as a final fallback when env var, MCP roots, and `.imgxrc` detection all fail. Enables Claude Desktop users to set the project root without editing `claude_desktop_config.json`.
-- **CLI `project-root` config key** — `imgx config set project-root /path/to/project` and `imgx config get project-root`
-- 3 new tests for `projectRoot` fallback (total: 84 tests)
-
-### Detection priority
-
-1. `IMGX_PROJECT_ROOT` env var
-2. MCP roots (`listRoots()`)
-3. `.imgxrc` upward search from CWD
-4. User config `projectRoot` (new)
-
 ## 1.4.1 (2026-03-04)
 
 ### Fixed
