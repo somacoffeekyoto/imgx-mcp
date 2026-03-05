@@ -37,7 +37,7 @@ export function runConfig(args: string[]): void {
     const key = filtered[0];
     const value = filtered[1];
     if (!key || !value) {
-      out.fail('Usage: imgx config set <key> <value> [--provider <name>]\n  Keys: api-key, provider, model, output-dir, aspect-ratio, resolution, project-root');
+      out.fail('Usage: imgx config set <key> <value> [--provider <name>]\n  Keys: api-key, provider, model, output-dir, aspect-ratio, resolution');
     }
     if (key === "output-dir") {
       setOutputDir(value, hasYes, hasNoMove);
@@ -100,12 +100,8 @@ function setKey(key: string, value: string, provider: string): void {
       config.defaults.resolution = value;
       break;
     }
-    case "project-root": {
-      config.projectRoot = value;
-      break;
-    }
     default:
-      out.fail(`Unknown key: ${key}. Valid keys: api-key, provider, model, output-dir, aspect-ratio, resolution, project-root`);
+      out.fail(`Unknown key: ${key}. Valid keys: api-key, provider, model, output-dir, aspect-ratio, resolution`);
   }
 
   saveConfig(config);
@@ -205,11 +201,8 @@ function getKey(key: string, provider: string): void {
     case "resolution":
       out.success({ key, value: config.defaults?.resolution ?? null });
       return;
-    case "project-root":
-      out.success({ key, value: config.projectRoot ?? null });
-      return;
     default:
-      out.fail(`Unknown key: ${key}. Valid keys: api-key, provider, model, output-dir, aspect-ratio, resolution, project-root`);
+      out.fail(`Unknown key: ${key}. Valid keys: api-key, provider, model, output-dir, aspect-ratio, resolution`);
   }
 }
 

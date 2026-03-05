@@ -14,7 +14,6 @@ export interface ImgxConfig {
     aspectRatio?: string;
     resolution?: string;
   };
-  projectRoot?: string;
 }
 
 let _cachedProjectRoot: string | null | undefined; // undefined = not searched
@@ -26,8 +25,7 @@ export function setProjectRoot(root: string): void {
   _cachedProjectRoot = undefined; // invalidate cache so findProjectRoot re-evaluates
 }
 
-/** Find the project root directory.
- *  Priority: env var → MCP roots → .imgxrc upward search → user config projectRoot */
+/** Find the nearest ancestor directory containing .imgxrc */
 export function findProjectRoot(startDir?: string): string | null {
   // 1. Explicit env var
   if (process.env.IMGX_PROJECT_ROOT) return process.env.IMGX_PROJECT_ROOT;
@@ -44,12 +42,6 @@ export function findProjectRoot(startDir?: string): string | null {
     const parent = dirname(dir);
     if (parent === dir) break;
     dir = parent;
-  }
-  // 4. User config projectRoot (fallback for environments where CWD is not the project directory)
-  const config = loadConfig();
-  if (config.projectRoot) {
-    _cachedProjectRoot = config.projectRoot;
-    return config.projectRoot;
   }
   _cachedProjectRoot = null;
   return null;

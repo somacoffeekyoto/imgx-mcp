@@ -9,8 +9,6 @@ import {
   loadProjectConfig,
   resetProjectRootCache,
   setProjectRoot,
-  loadConfig,
-  saveConfig,
 } from "../../src/core/config.js";
 
 function makeTmpDir(): string {
@@ -173,76 +171,6 @@ describe("resolveProjectPath", () => {
     // No IMGX_PROJECT_ROOT, no .imgxrc in tree
     const result = resolveProjectPath("images/test.png");
     expect(result).toBe(join(process.cwd(), "images", "test.png"));
-  });
-});
-
-
-describe("user config projectRoot fallback", () => {
-  let tmpDir: string;
-  let configDir: string;
-  const origEnv = process.env.IMGX_PROJECT_ROOT;
-  const origAppdata = process.env.APPDATA;
-  const origXdg = process.env.XDG_CONFIG_HOME;
-
-  beforeEach(() => {
-    tmpDir = makeTmpDir();
-    configDir = makeTmpDir();
-    delete process.env.IMGX_PROJECT_ROOT;
-    // Redirect config to temp dir
-    if (process.platform === "win32") {
-      process.env.APPDATA = configDir;
-    } else {
-      process.env.XDG_CONFIG_HOME = configDir;
-    }
-    resetProjectRootCache();
-  });
-
-  afterEach(() => {
-    if (origEnv !== undefined) {
-      process.env.IMGX_PROJECT_ROOT = origEnv;
-    } else {
-      delete process.env.IMGX_PROJECT_ROOT;
-    }
-    if (origAppdata !== undefined) {
-      process.env.APPDATA = origAppdata;
-    } else {
-      delete process.env.APPDATA;
-    }
-    if (origXdg !== undefined) {
-      process.env.XDG_CONFIG_HOME = origXdg;
-    } else {
-      delete process.env.XDG_CONFIG_HOME;
-    }
-    resetProjectRootCache();
-    rmSync(tmpDir, { recursive: true, force: true });
-    rmSync(configDir, { recursive: true, force: true });
-  });
-
-  it("uses projectRoot from user config when no .imgxrc found", () => {
-    const projectDir = join(tmpDir, "my-project");
-    mkdirSync(projectDir, { recursive: true });
-    // Save config with projectRoot
-    saveConfig({ projectRoot: projectDir });
-    const result = findProjectRoot(tmpDir);
-    expect(result).toBe(projectDir);
-  });
-
-  it("prefers .imgxrc over user config projectRoot", () => {
-    const configProjectDir = join(tmpDir, "config-project");
-    const imgxrcDir = join(tmpDir, "imgxrc-project");
-    mkdirSync(configProjectDir, { recursive: true });
-    mkdirSync(imgxrcDir, { recursive: true });
-    writeFileSync(join(imgxrcDir, ".imgxrc"), "{}");
-    saveConfig({ projectRoot: configProjectDir });
-    const result = findProjectRoot(imgxrcDir);
-    expect(result).toBe(imgxrcDir);
-  });
-
-  it("returns null when no detection method finds a root", () => {
-    // No env, no MCP root, no .imgxrc, no config projectRoot
-    saveConfig({});
-    const result = findProjectRoot(tmpDir);
-    expect(result).toBeNull();
   });
 });
 
