@@ -1,6 +1,13 @@
 # Changelog
 
-## 1.5.0 (2026-03-05)
+## 1.5.1 (2026-03-05)
+
+### Fixed
+
+- **Re-release of v1.5.0** — v1.5.0 was unpublished during documentation review; npm does not allow re-publishing the same version. No code changes from v1.5.0.
+- **Documentation** — Added `.imgx/` directory location explanation, `output_dir`/history relationship, and updated SKILL.md tips
+
+## 1.5.0 (2026-03-05) [YANKED — npm does not allow re-publish]
 
 ### Added
 
