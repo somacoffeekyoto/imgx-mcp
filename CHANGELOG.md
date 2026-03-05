@@ -4,17 +4,19 @@
 
 ### Added
 
-- **User config `projectRoot`** — `imgx config set project-root /path/to/project` to set the project root in user config. Stored in `~/.config/imgx/config.json` or `%APPDATA%\imgx\config.json`. Applies to all MCP clients and CLI on this machine. Used as a fallback when auto-detection (MCP roots, `.imgxrc`) does not work.
-- **CLI `project-root` config key** — `imgx config set project-root` and `imgx config get project-root`
-- 3 new tests (total: 84 tests)
+- **User config `projectRoot` fallback** — `findProjectRoot()` now checks `projectRoot` in user config as a final fallback when env var, MCP roots, and `.imgxrc` detection all fail
+- **CLI `project-root` config key** — `imgx config set project-root /path/to/project` and `imgx config get project-root`
+- 3 new tests for `projectRoot` fallback (total: 84 tests)
 
-### Project root detection
+### Project root configuration (3 tiers)
 
-Three ways to set the project root:
+| Method | Scope | How to set |
+|--------|-------|------------|
+| `IMGX_PROJECT_ROOT` env var in client config | Per-client (highest priority) | Add to `env` in `claude_desktop_config.json`, `.mcp.json`, etc. |
+| Auto-detection (MCP roots / `.imgxrc` search) | Automatic | Works on CLI agents (Claude Code, Gemini CLI). Not available on Claude Desktop |
+| `imgx config set project-root` | All clients on the machine | Stored in `~/.config/imgx/config.json` or `%APPDATA%\imgx\config.json` |
 
-1. **Client env var** (per-client, highest priority) — `IMGX_PROJECT_ROOT` in the MCP client config (e.g. `claude_desktop_config.json`)
-2. **Auto-detection** — MCP roots or `.imgxrc` upward search from CWD. Works on CLI and Claude Code. Does not work on Claude Desktop.
-3. **imgx user config** (shared across all clients) — `imgx config set project-root /path/to/project`
+Detection priority: env var → MCP roots → `.imgxrc` upward search → user config `projectRoot`
 
 ## 1.4.1 (2026-03-04)
 

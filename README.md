@@ -217,7 +217,11 @@ macOS / Linux:
     "imgx": {
       "command": "npx",
       "args": ["--package=imgx-mcp", "-y", "imgx-mcp"],
-      "env": { "GEMINI_API_KEY": "your-key", "OPENAI_API_KEY": "your-key" }
+      "env": {
+        "GEMINI_API_KEY": "your-key",
+        "OPENAI_API_KEY": "your-key",
+        "IMGX_PROJECT_ROOT": ""
+      }
     }
   }
 }
@@ -231,15 +235,21 @@ Windows:
     "imgx": {
       "command": "cmd",
       "args": ["/c", "npx", "--package=imgx-mcp", "-y", "imgx-mcp"],
-      "env": { "GEMINI_API_KEY": "your-key", "OPENAI_API_KEY": "your-key" }
+      "env": {
+        "GEMINI_API_KEY": "your-key",
+        "OPENAI_API_KEY": "your-key",
+        "IMGX_PROJECT_ROOT": ""
+      }
     }
   }
 }
 ```
 
+`IMGX_PROJECT_ROOT` — Set to your project path to save images inside the project (e.g. `"C:\\Users\\you\\my-project"`). Leave empty to use the global default (`~/Pictures/imgx`).
+
 Config file location: `%APPDATA%\Claude\claude_desktop_config.json` (Windows) or `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS). After editing, restart Claude Desktop.
 
-> **Note:** Claude Desktop runs the MCP server from its own app directory. To control image output location, add `"IMGX_OUTPUT_DIR": "C:\\Users\\you\\Pictures"` to the `env` section, or run `imgx config set output-dir <path>` beforehand.
+> **Note:** Claude Desktop does not support auto-detection (MCP roots / CWD-based `.imgxrc` search). Use `IMGX_PROJECT_ROOT` in the config above (per-client), or run `imgx config set project-root /path/to/project` (shared across all clients).
 
 ### Codex CLI
 
@@ -388,19 +398,15 @@ Or create manually:
 
 Project config is shared via Git. Do not put API keys in `.imgxrc`.
 
-There are three ways to set the project root, depending on your environment:
+#### Project root configuration (3 tiers)
 
-**1. Client config (per-client, highest priority)** — Set `IMGX_PROJECT_ROOT` in the MCP client's environment. In Claude Desktop, add it to the `env` section of `claude_desktop_config.json`. This setting applies only to that client.
+| Method | Scope | How to set |
+|--------|-------|------------|
+| `IMGX_PROJECT_ROOT` env var in client config | Per-client (highest priority) | Add to `env` in `claude_desktop_config.json`, `.mcp.json`, etc. |
+| Auto-detection (MCP roots / `.imgxrc` search) | Automatic | Works on CLI agents (Claude Code, Gemini CLI). Not available on Claude Desktop |
+| `imgx config set project-root` | All clients on the machine | Stored in user config (`~/.config/imgx/config.json` or `%APPDATA%\imgx\config.json`) |
 
-```json
-"env": { "GEMINI_API_KEY": "your-key", "IMGX_PROJECT_ROOT": "/path/to/project" }
-```
-
-**2. imgx user config (shared across all clients)** — Run `imgx config set project-root /path/to/project`. Stored in `~/.config/imgx/config.json` (or `%APPDATA%\imgx\config.json` on Windows). Applies to all MCP clients and CLI on this machine.
-
-**3. Auto-detection** — Works automatically when the working directory is inside the project (CLI, Claude Code). Detects via MCP roots or `.imgxrc` upward search. Does not work in Claude Desktop, where the working directory is the application install path.
-
-Detection priority: client env var > MCP roots > `.imgxrc` upward search > imgx user config.
+Detection priority: env var → MCP roots → `.imgxrc` upward search → user config `projectRoot`.
 
 History is saved to `<project-root>/.imgx/output-history.json` (project-scoped, not shared with other projects). Default image output goes to `<project-root>/.imgx/<session-id>/`. Relative paths in `output` and `output_dir` are resolved against the project root instead of the MCP server's working directory.
 
