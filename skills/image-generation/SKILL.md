@@ -61,6 +61,51 @@ Set the key in the `.mcp.json` env section (above), or via CLI:
 npx imgx-mcp config set api-key YOUR_KEY --provider gemini
 ```
 
+### 3. Project root (optional but recommended)
+
+imgx-mcp uses the project root to determine where `.imgx/` (history + default image output) is created. Without it, images go to `~/Pictures/imgx/` and history to `~/.config/imgx/`.
+
+| Method | Scope | How to set |
+|--------|-------|------------|
+| `IMGX_PROJECT_ROOT` env var | Per-client (highest priority) | Add to `env` in `.mcp.json` or `claude_desktop_config.json` |
+| Auto-detection (MCP roots / `.imgxrc` search) | Automatic | Works on CLI agents (Claude Code, Gemini CLI). Not available on Claude Desktop |
+| `imgx config set project-root /path` | All clients on the machine | Stored in user config |
+
+Detection priority: env var → MCP roots → `.imgxrc` upward search → user config `projectRoot`.
+
+**Claude Code** usually auto-detects via MCP roots — no extra config needed. **Claude Desktop** does not support auto-detection, so set `IMGX_PROJECT_ROOT` in the env.
+
+#### `.imgxrc` project config
+
+Create with `npx imgx-mcp init` or manually. Shared via Git (do not put API keys here):
+
+```json
+{
+  "defaults": {
+    "model": "gemini-2.5-flash-image",
+    "outputDir": "./assets/images",
+    "aspectRatio": "16:9"
+  }
+}
+```
+
+#### Claude Desktop config example
+
+```json
+{
+  "mcpServers": {
+    "imgx": {
+      "command": "npx",
+      "args": ["--package=imgx-mcp", "-y", "imgx-mcp"],
+      "env": {
+        "GEMINI_API_KEY": "your-key",
+        "IMGX_PROJECT_ROOT": "C:\\Users\\you\\my-project"
+      }
+    }
+  }
+}
+```
+
 ## MCP tools
 
 Use these tools directly. No Bash needed.
@@ -160,6 +205,16 @@ Change the default output directory for generated images.
 | `path` | Yes | New output directory path |
 | `move_files` | No | Move existing files to the new directory (default: false) |
 
+## Providers
+
+| Provider | Default model | Key capabilities |
+|----------|--------------|------------------|
+| Gemini (default) | `gemini-3-pro-image-preview` | Generate, edit, aspect ratio, resolution (1K/2K/4K) |
+| Gemini (fast) | `gemini-2.5-flash-image` | Same as above, faster, lower cost, max 2K |
+| OpenAI | `gpt-image-1` | Generate, edit, aspect ratio, multi-output (`count`), output format (PNG/JPEG/WebP) |
+
+See [providers reference](references/providers.md) for detailed comparison.
+
 ## Practical workflows
 
 ### Blog cover image
@@ -189,7 +244,9 @@ Use `undo_edit` and `redo_edit` to navigate through edit history:
 generate_image → edit_last → edit_last → undo_edit → undo_edit → redo_edit
 ```
 
-Each generate starts a new session. Use `edit_history` to see all sessions, and `switch_session` to resume work on a previous image chain.
+After undo, calling `edit_last` branches from the current position — abandoned entries and their files are automatically deleted from disk.
+
+Each generate starts a new session. Use `edit_history` to see all sessions, and `switch_session` to resume work on a previous image chain. `edit_last` uses the current position in the switched session.
 
 ### Comparing providers
 
@@ -215,14 +272,14 @@ Generate the same prompt with different providers to let the user choose:
 - **Be specific in prompts**: "A wooden table with a ceramic pour-over dripper, steam rising, soft natural light from left" works better than "coffee scene"
 - **Use edit_last for iteration**: Don't ask the user to specify file paths. Just use `edit_last` after any generation or edit
 - **Check provider capabilities**: Use `list_providers` if unsure what a provider supports
-- **Where `.imgx/` is created**: The `.imgx/` directory holds both edit history (`output-history.json`) and default image output. When a project root is detected, it's created at `<project-root>/.imgx/`. Without a project root, images go to `~/Pictures/imgx/` and history to `~/.config/imgx/`. All clients sharing the same project root share the same history
+- **Where `.imgx/` is created**: The `.imgx/` directory holds both edit history (`output-history.json`) and default image output. When a project root is detected, it's created at `<project-root>/.imgx/`. Without a project root, images go to `~/Pictures/imgx/` and history to `~/.config/imgx/`. All clients sharing the same project root share the same history. See the **Project root** setup section above for configuration methods
 - **Default output**: Images save to `<project-root>/.imgx/<session-id>/` (project auto-detected). Falls back to `~/Pictures/imgx/` when no project is detected. Use `output` or `output_dir` to customize
 - **Custom output_dir and history**: When `output_dir` is specified on `generate_image`, the path is recorded as session metadata in `output-history.json`. `edit_last` reads this to inherit the output location. Only image files go to the custom path — history always stays in `.imgx/` (or global config directory)
 - **Inline preview**: MCP responses include base64 image data for inline display in supported clients
 - **Undo/redo**: Use `undo_edit` and `redo_edit` to step through edit history. Each session holds up to 10 entries
 - **Sessions**: Each `generate_image` starts a new session. Use `edit_history` to see all sessions and `switch_session` to resume a previous one
 - **Sequential naming**: When `output` specifies a filename, `edit_last` appends sequential numbers: `cover.png` → `cover-1.png` → `cover-2.png`. Undo automatically deletes discarded files
-- **Project scope**: History is stored per-project in `<project-root>/.imgx/output-history.json`. `clear_history` only affects the current project
+- **Project scope**: History is stored per-project in `<project-root>/.imgx/output-history.json`. `clear_history` only affects the current project. Relative paths in `output` and `output_dir` are resolved against the project root
 
 ## CLI fallback
 
