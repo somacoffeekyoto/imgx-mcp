@@ -6847,6 +6847,11 @@ function findProjectRoot(startDir) {
       break;
     dir = parent;
   }
+  const config2 = loadConfig();
+  if (config2.projectRoot) {
+    _cachedProjectRoot = config2.projectRoot;
+    return config2.projectRoot;
+  }
   _cachedProjectRoot = null;
   return null;
 }
@@ -69977,7 +69982,7 @@ function buildImageContent(images, paths, extra) {
 }
 var server = new McpServer({
   name: "imgx",
-  version: "1.4.1"
+  version: "1.5.0"
 });
 initGemini();
 initOpenAI();

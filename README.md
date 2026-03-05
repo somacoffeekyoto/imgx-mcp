@@ -388,7 +388,15 @@ Or create manually:
 
 Project config is shared via Git. Do not put API keys in `.imgxrc`.
 
-When used via MCP (Claude Code, etc.), imgx-mcp automatically detects the project root from the client's workspace via MCP roots. When `.imgxrc` is present, that directory is used as the project root (CLI fallback). You can also set `IMGX_PROJECT_ROOT` environment variable explicitly. History is saved to `<project-root>/.imgx/output-history.json` (project-scoped, not shared with other projects). Default image output goes to `<project-root>/.imgx/<session-id>/`. Relative paths in `output` and `output_dir` are resolved against the project root instead of the MCP server's working directory.
+When used via MCP (Claude Code, etc.), imgx-mcp automatically detects the project root from the client's workspace via MCP roots. When `.imgxrc` is present, that directory is used as the project root (CLI fallback). You can also set `IMGX_PROJECT_ROOT` environment variable explicitly. For environments where CWD-based detection does not work (e.g. Claude Desktop), set the project root in user config:
+
+```bash
+imgx config set project-root /path/to/project
+```
+
+Detection priority: `IMGX_PROJECT_ROOT` env var > MCP roots > `.imgxrc` upward search > user config `projectRoot`.
+
+History is saved to `<project-root>/.imgx/output-history.json` (project-scoped, not shared with other projects). Default image output goes to `<project-root>/.imgx/<session-id>/`. Relative paths in `output` and `output_dir` are resolved against the project root instead of the MCP server's working directory.
 
 ### Settings resolution
 
