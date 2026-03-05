@@ -100,7 +100,14 @@ The skill guides Claude Code through image workflows: blog covers, iterative edi
 | `set_output_dir` | Change the default output directory (optionally move existing files) |
 | `list_providers` | List available providers and capabilities |
 
-Images are saved to `<project-root>/.imgx/<session-id>/` when a project root is detected, or `~/Pictures/imgx/<session-id>/` otherwise. Each session gets its own directory. File paths are returned in the response. Inline image preview is included in MCP responses (base64).
+The `.imgx/` directory holds both edit history and default image output. Its location depends on project root detection:
+
+| Project root | `.imgx/` location | History |
+|---|---|---|
+| Detected | `<project-root>/.imgx/` | `<project-root>/.imgx/output-history.json` |
+| Not detected | `~/Pictures/imgx/` (images only) | `~/.config/imgx/output-history.json` (global) |
+
+All clients that resolve to the same project root share the same history. Each session gets its own subdirectory. File paths are returned in the response. Inline image preview is included in MCP responses (base64).
 
 ### Iterative editing
 
@@ -144,7 +151,7 @@ edit_last                  → imgx-a1b2c3d4-1.png
 
 **Session switching** — Use `edit_history` to see all sessions, then `switch_session` to resume a previous session. The `edit_last` tool will use the current position in the switched session.
 
-**Output directory** — `edit_last` inherits the output directory from the session. If `generate_image` was called with `output_dir`, all subsequent `edit_last` calls in that session output to the same directory.
+**Output directory** — `edit_last` inherits the output directory from the session. If `generate_image` was called with `output_dir`, all subsequent `edit_last` calls in that session output to the same directory. The `output_dir` path is recorded as session metadata in `output-history.json`. This only affects where image files are saved — history always stays in `.imgx/` (or the global config directory).
 
 ## API key setup
 
