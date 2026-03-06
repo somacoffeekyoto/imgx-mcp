@@ -9,6 +9,10 @@
 - **`gpt-image-1-mini`** — Budget OpenAI model at $0.005–$0.036/image. Same API compatibility
 - **`background` parameter** — `transparent`, `opaque`, or `auto` (OpenAI only). Available on `generate_image`, `edit_image`, and `edit_last` MCP tools, and as `--background` / `-b` CLI flag. Use `transparent` for icons, logos, and stickers with transparent PNG/WebP output
 - **`quality` parameter** — `low`, `medium`, `high`, or `auto` (OpenAI only). Direct quality control that overrides the resolution-based mapping. Available on all MCP tools and as `--quality` / `-q` CLI flag
+- **Viral style templates** — Ghibli, action figure, 3D clay, pixel art, and more in SKILL.md
+- **Specialized use case guides** — Icon set generation, seamless patterns, technical diagrams, story sequences with character consistency
+- **Multi-image consistency techniques** — Design token approach, character DNA template, style reference chains
+- **Platform size guide** — Recommended aspect ratios and resolutions for social media, OGP, app stores, print, and blog platforms
 - **Model aliases** — Nano Banana Pro, Nano Banana 2, Nano Banana, GPT Image 1.5, GPT Image Mini (+ Japanese variants) mapped in Skill for natural language model selection
 
 ### Changed

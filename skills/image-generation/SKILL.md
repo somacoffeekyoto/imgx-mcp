@@ -496,6 +496,171 @@ These multi-step sequences are common in real workflows:
 
 **Style exploration**: Generate a base image, then apply different style transfers with `edit_last` to find the right mood. Use `undo_edit` to return to the base and try another style.
 
+## Viral and trending image styles
+
+Popular AI image styles that users may request. Use these prompt templates with `generate_image` or `edit_last`.
+
+| Style | Prompt template | Notes |
+|-------|----------------|-------|
+| Ghibli / anime scene | "Redraw in Studio Ghibli anime style, soft watercolor textures, warm natural lighting, pastoral atmosphere" | Apply via `edit_last` to transform existing images |
+| Action figure in box | "A realistic action figure of [subject] in a sealed toy box with clear plastic window, product packaging, brand logo area at top, accessories visible" | Works well with `1:1` or `3:4` aspect ratio |
+| 3D clay figure | "A cute 3D clay figure of [subject], rounded smooth surfaces, soft pastel colors, miniature diorama, studio lighting" | The original "Nano Banana" viral style |
+| "Hug your past self" | "A person in [current clothing] hugging a smaller version of themselves as a [child/teenager], warm emotional lighting, photo-realistic" | Emotional / personal branding content |
+| Pet portrait (humanized) | "A [breed] dog/cat dressed in [outfit], sitting in a [setting], portrait style, dignified pose, realistic fur texture" | Popular for social media profiles |
+| Chibi character | "A chibi-style character of [description], oversized head, small body, big expressive eyes, simple background, cute proportions" | Good for avatars and stickers |
+| Pixel art retro | "16-bit pixel art of [subject], retro game aesthetic, limited color palette, clean pixel edges" | Nostalgic developer/gaming content |
+
+When the user requests a trending style, use the appropriate template and adjust based on their subject. Combine with `background="transparent"` (OpenAI) for stickers.
+
+## Specialized use case guides
+
+### Icon set generation
+
+Generate multiple icons with consistent style for an app or project:
+
+```
+1. Define the style: "Flat minimalist icon, 2px stroke, rounded corners, single accent color #FF6B35 on white"
+2. generate_image: prompt="[style] of a home/house symbol" aspect_ratio="1:1"
+3. generate_image: prompt="[style] of a settings gear symbol" aspect_ratio="1:1"
+4. generate_image: prompt="[style] of a user profile symbol" aspect_ratio="1:1"
+```
+
+Key: Repeat the exact same style description in every prompt. This is more reliable than using `edit_last` for style consistency across separate icons.
+
+For transparent icons: Use OpenAI with `background="transparent"` and describe only the icon subject.
+
+### Seamless pattern
+
+```
+1. generate_image: prompt="Seamless tileable pattern of [elements], evenly distributed, no visible seam edges, [style]"
+2. edit_last: prompt="Make the pattern more evenly distributed, ensure elements don't cluster at edges"
+```
+
+Tip: Include "seamless tileable pattern" and "no visible seam edges" in the prompt.
+
+### Technical diagram / architecture
+
+```
+1. generate_image: prompt="Clean technical architecture diagram showing [components], labeled boxes connected by arrows, white background, minimal style, clear hierarchy"
+2. edit_last: prompt="Add a label '[text]' to the top box"
+```
+
+For accurate text labels, use Nano Banana 2 (best text rendering) or OpenAI gpt-image-1.5.
+
+### Story sequence (consistent characters)
+
+Maintain visual consistency across a sequence of images:
+
+```
+1. Define a character DNA: "A woman with short dark hair, round glasses, wearing a navy blue cardigan and white t-shirt"
+2. generate_image: prompt="[character DNA], sitting at a desk reading a book, warm indoor lighting"
+3. generate_image: prompt="[character DNA], standing at a coffee shop counter ordering, morning light through windows"
+4. generate_image: prompt="[character DNA], walking on a city street with a tote bag, afternoon sun"
+```
+
+Key: Copy the exact character description into every prompt. Add scene-specific context after the character DNA. Consistency improves when using the same model and provider across all images.
+
+## Multi-image consistency techniques
+
+When the user needs multiple images that look like they belong together (slide decks, social media series, brand assets):
+
+### Design token approach
+
+Define visual constants and reuse them across all prompts:
+
+```
+Color:     "earth tones, warm browns (#8B6914) and sage green (#87A96B)"
+Style:     "flat illustration with subtle paper texture, 2D, no gradients"
+Lighting:  "soft diffused natural light, no harsh shadows"
+Framing:   "centered subject, 20% padding, clean background"
+```
+
+Prepend these tokens to every prompt: `"[tokens], [subject-specific content]"`
+
+### Character DNA template
+
+For recurring characters or mascots, write a fixed description block:
+
+```
+Character: "A friendly robot with a round head, single blue eye, matte silver body, short stubby arms, standing upright"
+```
+
+Never paraphrase — copy the exact same text each time.
+
+### Style reference chain
+
+Use one generated image as the style anchor:
+
+```
+1. generate_image: prompt="[detailed style + first scene]" → establish the look
+2. For subsequent images: describe the same style explicitly + new scene content
+3. If style drifts: undo_edit back, regenerate with more explicit style description
+```
+
+### Consistency tips
+
+- **Same model, same provider** across all images in a set
+- **Front-load the style description** before scene-specific content
+- **Use exact phrases** — "soft watercolor" not sometimes "watercolor" and sometimes "painted in watercolors"
+- **Generate at the same resolution** — mixing resolutions changes perceived style
+- **Review and regenerate** — if one image in a set drifts, regenerate it rather than trying to edit it to match
+
+## Platform size guide
+
+Recommended aspect ratios and resolutions for common platforms. When the user mentions a platform, suggest these settings automatically.
+
+### Social media
+
+| Platform | Use case | Aspect ratio | Resolution | Notes |
+|----------|----------|-------------|------------|-------|
+| Twitter/X | Post image | `16:9` | `2K` | 1200x675 recommended, larger is fine |
+| Twitter/X | Profile header | `3:1` (use `21:9`) | `2K` | 1500x500 recommended |
+| Facebook | Shared post | `16:9` | `2K` | |
+| Facebook | Cover photo | `21:9` | `2K` | 820x312 recommended |
+| Instagram | Feed post | `1:1` or `4:5` | `2K` | Square or portrait |
+| Instagram | Story/Reel | `9:16` | `2K` | 1080x1920 |
+| LinkedIn | Post image | `16:9` or `1:1` | `2K` | |
+| YouTube | Thumbnail | `16:9` | `2K` | 1280x720 minimum |
+
+### OGP (Open Graph Protocol)
+
+| Platform | Recommended size | Aspect ratio | Notes |
+|----------|-----------------|-------------|-------|
+| Twitter/X Cards | 1200x630 | `~1.91:1` (use `16:9`) | Summary with large image |
+| Facebook OGP | 1200x630 | `~1.91:1` (use `16:9`) | Same as Twitter |
+| LinkedIn OGP | 1200x627 | `~1.91:1` (use `16:9`) | Same ratio |
+| Slack unfurl | 1200x630 | `16:9` | Same as OGP standard |
+
+For OGP images: Use `16:9` at `2K` resolution. This covers all major platforms.
+
+### App stores
+
+| Platform | Use case | Aspect ratio | Resolution |
+|----------|----------|-------------|------------|
+| iOS App Store | Screenshot (iPhone) | `9:16` | `4K` (retina) |
+| iOS App Store | Screenshot (iPad) | `3:4` | `4K` |
+| Google Play | Screenshot | `9:16` | `4K` |
+| App Store | Feature graphic | `16:9` | `2K` |
+
+### Print and documents
+
+| Use case | Aspect ratio | Resolution | Notes |
+|----------|-------------|------------|-------|
+| A4 document | `3:4` | `4K` | Portrait orientation |
+| Letter | `4:5` | `4K` | US letter approximation |
+| Presentation (16:9) | `16:9` | `2K`–`4K` | Standard widescreen |
+| Business card | `16:9` or `3:2` | `2K` | Landscape orientation |
+
+### Blog platforms
+
+| Platform | Cover image | Aspect ratio | Notes |
+|----------|-------------|-------------|-------|
+| note.com | Header | `16:9` | PNG recommended |
+| Dev.to | Cover | `16:9` | 1000x420 minimum |
+| Medium | Header | `16:9` or `3:2` | |
+| WordPress | Featured image | `16:9` | JPEG for file size |
+| Qiita | OGP | `16:9` | Auto-generated if not set |
+
 ## Writing effective prompts
 
 Structure prompts with three layers: **Subject → Context → Style**. Each layer adds specificity.
