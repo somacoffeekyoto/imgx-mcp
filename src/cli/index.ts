@@ -45,6 +45,7 @@ Options:
   -r, --resolution <size>    Resolution: 1K, 2K, 4K
   -f, --format <type>        Output format: png, jpeg, webp (OpenAI only)
   -b, --background <type>    Background: transparent, opaque, auto (OpenAI only)
+  -q, --quality <level>      Quality: low, medium, high, auto (OpenAI only)
   -m, --model <model>        Model name
   --provider <name>          Provider: gemini, openai (default: gemini)
   -d, --output-dir <dir>     Output directory
@@ -149,6 +150,7 @@ function main(): void {
       resolution: { type: "string", short: "r" },
       format: { type: "string", short: "f" },
       background: { type: "string", short: "b" },
+      quality: { type: "string", short: "q" },
       model: { type: "string", short: "m" },
       provider: { type: "string" },
       "output-dir": { type: "string", short: "d" },
@@ -214,6 +216,7 @@ function main(): void {
       undefined,
     outputFormat: (values.format as "png" | "jpeg" | "webp" | undefined) || undefined,
     background: (values.background as "transparent" | "opaque" | "auto" | undefined) || undefined,
+    quality: (values.quality as "low" | "medium" | "high" | "auto" | undefined) || undefined,
     model,
     count: values.count ? parseInt(values.count as string, 10) : undefined,
   };

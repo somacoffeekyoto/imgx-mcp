@@ -212,6 +212,8 @@ The only Gemini image model with a **free tier**. Best entry point for trying im
 | Multiple variations at once | OpenAI (`count=3`) — paid |
 | OpenAI fast + cheap | gpt-image-1.5 (`model="gpt-image-1.5"`) — 4x faster, 20% cheaper |
 | OpenAI ultra-budget | gpt-image-1-mini (`model="gpt-image-1-mini"`) — $0.005/image |
+| OpenAI fast draft (low cost) | Any OpenAI model with `quality="low"` — fastest, cheapest |
+| OpenAI maximum detail | Any OpenAI model with `quality="high"` — best quality, slower |
 | Compare providers side-by-side | Generate with Gemini, then OpenAI |
 | Budget-conscious bulk generation | Nano Banana 2 (lowest per-image cost in paid tier) |
 
@@ -233,6 +235,7 @@ Generate an image from a text prompt.
 | `count` | No | Number of images (OpenAI only) |
 | `output_format` | No | `png`, `jpeg`, `webp` (OpenAI only) |
 | `background` | No | `transparent`, `opaque`, `auto` (OpenAI only). Use `transparent` for transparent PNG/WebP |
+| `quality` | No | `low`, `medium`, `high`, `auto` (OpenAI only). Overrides resolution-based mapping |
 | `model` | No | Model name or use alias mapping above |
 | `provider` | No | `gemini` (default) or `openai` |
 | `output` | No | Output file path |
@@ -250,6 +253,7 @@ Edit an existing image with text instructions. No mask needed — the model dete
 | `resolution` | No | Output resolution (Gemini only) |
 | `output_format` | No | `png`, `jpeg`, `webp` (OpenAI only) |
 | `background` | No | `transparent`, `opaque`, `auto` (OpenAI only) |
+| `quality` | No | `low`, `medium`, `high`, `auto` (OpenAI only) |
 | `model` | No | Model name or use alias mapping above |
 | `provider` | No | `gemini` (default) or `openai` |
 | `output` | No | Output file path |
@@ -266,6 +270,7 @@ Edit the last generated or edited image. No input path needed — automatically 
 | `resolution` | No | Output resolution (Gemini only) |
 | `output_format` | No | `png`, `jpeg`, `webp` (OpenAI only) |
 | `background` | No | `transparent`, `opaque`, `auto` (OpenAI only) |
+| `quality` | No | `low`, `medium`, `high`, `auto` (OpenAI only) |
 | `model` | No | Model name or use alias mapping above |
 | `provider` | No | `gemini` (default) or `openai` |
 | `output` | No | Output file path |

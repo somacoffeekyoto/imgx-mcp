@@ -50,6 +50,7 @@
 | MULTIPLE_OUTPUTS | `count` | Generate up to 4 images per request |
 | OUTPUT_FORMAT | `output_format` | PNG, JPEG, WebP |
 | BACKGROUND | `background` | `transparent`, `opaque`, `auto`. Transparent PNG/WebP for icons, logos, stickers |
+| QUALITY | `quality` | `low`, `medium`, `high`, `auto`. Direct quality control (overrides resolution mapping) |
 
 ### Provider comparison
 

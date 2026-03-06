@@ -104,7 +104,7 @@ export class OpenAIProvider implements ImageProvider {
           prompt: input.prompt,
           n: input.count || 1,
           size: mapSize(input.aspectRatio),
-          quality: mapQuality(input.resolution),
+          quality: input.quality || mapQuality(input.resolution),
           ...(input.outputFormat ? { output_format: input.outputFormat } : {}),
           ...(input.background ? { background: input.background } : {}),
         }),
@@ -144,7 +144,7 @@ export class OpenAIProvider implements ImageProvider {
       prompt: input.prompt,
       n: String(input.count || 1),
       size: mapSize(input.aspectRatio),
-      quality: mapQuality(input.resolution),
+      quality: input.quality || mapQuality(input.resolution),
       ...(input.outputFormat ? { output_format: input.outputFormat } : {}),
       ...(input.background ? { background: input.background } : {}),
     };

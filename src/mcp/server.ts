@@ -76,6 +76,7 @@ server.tool(
     count: z.number().int().min(1).max(4).optional().describe("Number of images"),
     output_format: z.enum(["png", "jpeg", "webp"]).optional().describe("Output format"),
     background: z.enum(["transparent", "opaque", "auto"]).optional().describe("Background transparency (OpenAI only). Use 'transparent' for transparent PNG/WebP"),
+    quality: z.enum(["low", "medium", "high", "auto"]).optional().describe("Image quality (OpenAI only). Overrides resolution-based quality mapping"),
     model: z.string().optional().describe("Model name"),
     provider: z.string().optional().describe("Provider name"),
   },
@@ -89,6 +90,7 @@ server.tool(
         count: args.count,
         outputFormat: args.output_format,
         background: args.background,
+        quality: args.quality,
       };
 
       const result = await prov.generate(input, args.model);
@@ -141,6 +143,7 @@ server.tool(
     resolution: z.enum(["1K", "2K", "4K"]).optional().describe("Output resolution"),
     output_format: z.enum(["png", "jpeg", "webp"]).optional().describe("Output format"),
     background: z.enum(["transparent", "opaque", "auto"]).optional().describe("Background transparency (OpenAI only)"),
+    quality: z.enum(["low", "medium", "high", "auto"]).optional().describe("Image quality (OpenAI only)"),
     model: z.string().optional().describe("Model name"),
     provider: z.string().optional().describe("Provider name"),
   },
@@ -160,6 +163,7 @@ server.tool(
         resolution: args.resolution,
         outputFormat: args.output_format,
         background: args.background,
+        quality: args.quality,
       };
 
       const result = await prov.edit(input, args.model);
@@ -202,6 +206,7 @@ server.tool(
     resolution: z.enum(["1K", "2K", "4K"]).optional().describe("Output resolution"),
     output_format: z.enum(["png", "jpeg", "webp"]).optional().describe("Output format"),
     background: z.enum(["transparent", "opaque", "auto"]).optional().describe("Background transparency (OpenAI only)"),
+    quality: z.enum(["low", "medium", "high", "auto"]).optional().describe("Image quality (OpenAI only)"),
     model: z.string().optional().describe("Model name"),
     provider: z.string().optional().describe("Provider name"),
   },
@@ -228,6 +233,7 @@ server.tool(
         resolution: args.resolution,
         outputFormat: args.output_format,
         background: args.background,
+        quality: args.quality,
       };
 
       const result = await prov.edit(input, args.model);

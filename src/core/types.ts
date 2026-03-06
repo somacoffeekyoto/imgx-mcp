@@ -22,6 +22,7 @@ export interface GenerateInput {
   resolution?: string;
   outputFormat?: "png" | "jpeg" | "webp";
   background?: "transparent" | "opaque" | "auto";
+  quality?: "low" | "medium" | "high" | "auto";
 }
 
 export interface EditInput extends GenerateInput {

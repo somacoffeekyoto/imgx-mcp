@@ -365,6 +365,7 @@ imgx capabilities       # Detailed capabilities of current provider
 | `--count` | `-n` | Number of images to generate |
 | `--format` | `-f` | Output format: `png`, `jpeg`, `webp` (OpenAI only) |
 | `--background` | `-b` | Background: `transparent`, `opaque`, `auto` (OpenAI only) |
+| `--quality` | `-q` | Quality: `low`, `medium`, `high`, `auto` (OpenAI only) |
 | `--model` | `-m` | Model name |
 | `--provider` | | Provider name (default: `gemini`) |
 | `--output-dir` | `-d` | Output directory |

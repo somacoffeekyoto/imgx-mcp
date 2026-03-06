@@ -13,6 +13,7 @@ interface GenerateArgs {
   resolution?: string;
   outputFormat?: "png" | "jpeg" | "webp";
   background?: "transparent" | "opaque" | "auto";
+  quality?: "low" | "medium" | "high" | "auto";
   model?: string;
 }
 
@@ -28,6 +29,7 @@ export async function runGenerate(
       resolution: args.resolution,
       outputFormat: args.outputFormat,
       background: args.background,
+      quality: args.quality,
     },
     args.model
   );
