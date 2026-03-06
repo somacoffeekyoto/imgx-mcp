@@ -52,7 +52,7 @@ Options:
 
 Project config (.imgxrc):
   Place a .imgxrc file in your project directory to set defaults:
-  {"defaults":{"model":"gemini-2.5-flash-image","outputDir":"./images"}}
+  {"defaults":{"model":"gemini-3.1-flash-image-preview","outputDir":"./images"}}
 
 Configuration:
   imgx config set api-key <key>   Save API key to config file

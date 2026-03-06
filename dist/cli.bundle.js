@@ -39527,7 +39527,7 @@ var Capability;
 // build/providers/gemini/capabilities.js
 var GEMINI_PROVIDER_INFO = {
   name: "gemini",
-  models: ["gemini-3-pro-image-preview", "gemini-2.5-flash-image"],
+  models: ["gemini-3-pro-image-preview", "gemini-3.1-flash-image-preview"],
   defaultModel: "gemini-3-pro-image-preview",
   capabilities: /* @__PURE__ */ new Set([
     Capability.TEXT_TO_IMAGE,
@@ -39539,12 +39539,19 @@ var GEMINI_PROVIDER_INFO = {
   ]),
   aspectRatios: [
     "1:1",
+    "1:4",
+    "1:8",
     "2:3",
     "3:2",
     "3:4",
+    "4:1",
     "4:3",
+    "4:5",
+    "5:4",
+    "8:1",
     "9:16",
-    "16:9"
+    "16:9",
+    "21:9"
   ],
   resolutions: ["1K", "2K", "4K"]
 };
@@ -40330,7 +40337,7 @@ Options:
 
 Project config (.imgxrc):
   Place a .imgxrc file in your project directory to set defaults:
-  {"defaults":{"model":"gemini-2.5-flash-image","outputDir":"./images"}}
+  {"defaults":{"model":"gemini-3.1-flash-image-preview","outputDir":"./images"}}
 
 Configuration:
   imgx config set api-key <key>   Save API key to config file

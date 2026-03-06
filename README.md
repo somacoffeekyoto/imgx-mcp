@@ -277,7 +277,7 @@ The same `npx` pattern works with Cursor, Windsurf, Continue.dev, Cline, Zed, an
 
 | Provider | Models | Capabilities |
 |----------|--------|-------------|
-| Gemini | `gemini-3-pro-image-preview`, `gemini-2.5-flash-image` | Generate, edit, aspect ratio, resolution, reference images, person control |
+| Gemini | `gemini-3-pro-image-preview` (Nano Banana Pro), `gemini-3.1-flash-image-preview` (Nano Banana 2) | Generate, edit, aspect ratio (14 ratios), resolution (1K/2K/4K), reference images, person control |
 | OpenAI | `gpt-image-1` | Generate, edit, aspect ratio, multi-output, output format (PNG/JPEG/WebP) |
 
 ## Architecture
@@ -396,7 +396,7 @@ Or create manually:
 ```json
 {
   "defaults": {
-    "model": "gemini-2.5-flash-image",
+    "model": "gemini-3.1-flash-image-preview",
     "outputDir": "./assets/images",
     "aspectRatio": "16:9"
   }
