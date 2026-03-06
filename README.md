@@ -70,9 +70,18 @@ Claude Desktop supports skills via ZIP upload:
 
 > Update the skill by re-downloading and re-uploading the ZIP after new releases.
 
-### What the skill does
+### What the Skill brings
 
-The skill guides Claude Code through image workflows: blog covers, iterative editing, provider comparison, icon generation. It knows the MCP tool parameters and best practices, so you get better results with less effort.
+The MCP server gives the AI the *ability* to generate and edit images. The Skill adds the *knowledge* of how to use those tools well — so you don't need to learn prompt syntax, model specifications, or service-specific parameters.
+
+- **Automatic prompt construction** — Say "I need a cover image." The AI builds a structured prompt using the Subject-Context-Style framework: what to show, where to place it, how it should look
+- **24 editing techniques** — Atmosphere adjustment, composition changes, element manipulation, style transfer. "Make it warmer" or "add depth of field" — the AI selects the right instruction for the model
+- **Intelligent model selection** — Starts with the free model. Suggests paid upgrades only when your needs exceed free tier capabilities, and explains what changes
+- **Platform-aware sizing** — "Twitter OGP" or "App Store screenshot" — the AI picks the correct aspect ratio and resolution. Covers social media, OGP, app stores, print, and blog platforms
+- **Trending style templates** — Ghibli, action figure in box, 3D clay, pixel art, chibi, and more. Name the style and the AI applies the right prompt structure
+- **Multi-image consistency** — Design tokens and character DNA templates maintain visual coherence across slide decks, social media series, and brand assets
+
+The image generation models already have these capabilities. The Skill is what makes them accessible without specialized knowledge.
 
 ### MCP server vs Skill
 
