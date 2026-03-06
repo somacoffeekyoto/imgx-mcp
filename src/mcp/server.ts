@@ -39,7 +39,7 @@ function buildImageContent(
 
 const server = new McpServer({
   name: "imgx",
-  version: "1.5.1",
+  version: "1.6.0",
 });
 
 // プロバイダ初期化
@@ -75,6 +75,7 @@ server.tool(
     resolution: z.enum(["1K", "2K", "4K"]).optional().describe("Output resolution"),
     count: z.number().int().min(1).max(4).optional().describe("Number of images"),
     output_format: z.enum(["png", "jpeg", "webp"]).optional().describe("Output format"),
+    background: z.enum(["transparent", "opaque", "auto"]).optional().describe("Background transparency (OpenAI only). Use 'transparent' for transparent PNG/WebP"),
     model: z.string().optional().describe("Model name"),
     provider: z.string().optional().describe("Provider name"),
   },
@@ -87,6 +88,7 @@ server.tool(
         resolution: args.resolution,
         count: args.count,
         outputFormat: args.output_format,
+        background: args.background,
       };
 
       const result = await prov.generate(input, args.model);
@@ -138,6 +140,7 @@ server.tool(
       .describe("Aspect ratio"),
     resolution: z.enum(["1K", "2K", "4K"]).optional().describe("Output resolution"),
     output_format: z.enum(["png", "jpeg", "webp"]).optional().describe("Output format"),
+    background: z.enum(["transparent", "opaque", "auto"]).optional().describe("Background transparency (OpenAI only)"),
     model: z.string().optional().describe("Model name"),
     provider: z.string().optional().describe("Provider name"),
   },
@@ -156,6 +159,7 @@ server.tool(
         aspectRatio: args.aspect_ratio,
         resolution: args.resolution,
         outputFormat: args.output_format,
+        background: args.background,
       };
 
       const result = await prov.edit(input, args.model);
@@ -197,6 +201,7 @@ server.tool(
       .describe("Aspect ratio"),
     resolution: z.enum(["1K", "2K", "4K"]).optional().describe("Output resolution"),
     output_format: z.enum(["png", "jpeg", "webp"]).optional().describe("Output format"),
+    background: z.enum(["transparent", "opaque", "auto"]).optional().describe("Background transparency (OpenAI only)"),
     model: z.string().optional().describe("Model name"),
     provider: z.string().optional().describe("Provider name"),
   },
@@ -222,6 +227,7 @@ server.tool(
         aspectRatio: args.aspect_ratio,
         resolution: args.resolution,
         outputFormat: args.output_format,
+        background: args.background,
       };
 
       const result = await prov.edit(input, args.model);

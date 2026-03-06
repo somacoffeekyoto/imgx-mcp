@@ -14,6 +14,7 @@ interface EditArgs {
   aspectRatio?: string;
   resolution?: string;
   outputFormat?: "png" | "jpeg" | "webp";
+  background?: "transparent" | "opaque" | "auto";
   model?: string;
   isNewSession: boolean;
 }
@@ -43,6 +44,7 @@ export async function runEdit(
       aspectRatio: args.aspectRatio,
       resolution: args.resolution,
       outputFormat: args.outputFormat,
+      background: args.background,
     },
     args.model
   );

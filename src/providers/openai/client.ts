@@ -106,6 +106,7 @@ export class OpenAIProvider implements ImageProvider {
           size: mapSize(input.aspectRatio),
           quality: mapQuality(input.resolution),
           ...(input.outputFormat ? { output_format: input.outputFormat } : {}),
+          ...(input.background ? { background: input.background } : {}),
         }),
       });
 
@@ -145,6 +146,7 @@ export class OpenAIProvider implements ImageProvider {
       size: mapSize(input.aspectRatio),
       quality: mapQuality(input.resolution),
       ...(input.outputFormat ? { output_format: input.outputFormat } : {}),
+      ...(input.background ? { background: input.background } : {}),
     };
 
     const { body, contentType: ct } = buildMultipart(fields, [

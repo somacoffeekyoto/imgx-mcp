@@ -37,6 +37,7 @@
 |------|-------|
 | Provider name | `openai` |
 | Default model | `gpt-image-1` |
+| Additional models | `gpt-image-1.5` (faster, 20% cheaper), `gpt-image-1-mini` (budget, $0.005/image) |
 | API key env var | `OPENAI_API_KEY` |
 
 ### Capabilities
@@ -48,6 +49,7 @@
 | ASPECT_RATIO | `aspect_ratio` | 7 ratios: `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `9:16`, `16:9` |
 | MULTIPLE_OUTPUTS | `count` | Generate up to 4 images per request |
 | OUTPUT_FORMAT | `output_format` | PNG, JPEG, WebP |
+| BACKGROUND | `background` | `transparent`, `opaque`, `auto`. Transparent PNG/WebP for icons, logos, stickers |
 
 ### Provider comparison
 
@@ -58,6 +60,7 @@
 | Aspect ratios | 3.x: 14, 2.5: 7 | 7 |
 | Multiple outputs | No | Yes (up to 4) |
 | Output format selection | No (PNG only) | Yes (PNG/JPEG/WebP) |
+| Background transparency | No | Yes (`transparent`/`opaque`/`auto`) |
 | Iterative editing (`edit_last`) | Yes | Yes |
 
 ## Adding new providers

@@ -69798,7 +69798,7 @@ import { readFileSync as readFileSync4 } from "node:fs";
 // build/providers/openai/capabilities.js
 var OPENAI_PROVIDER_INFO = {
   name: "openai",
-  models: ["gpt-image-1"],
+  models: ["gpt-image-1", "gpt-image-1.5", "gpt-image-1-mini"],
   defaultModel: "gpt-image-1",
   capabilities: /* @__PURE__ */ new Set([
     Capability.TEXT_TO_IMAGE,

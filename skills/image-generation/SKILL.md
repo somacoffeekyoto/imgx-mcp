@@ -39,6 +39,8 @@ Users may refer to models by their alias. Map these to the correct `model` param
 | Nano Banana 2, NanoBanana 2, NB2, ナノバナナ2, ナノバナナツー | `gemini-3.1-flash-image-preview` | gemini |
 | Nano Banana, NanoBanana, NB, ナノバナナ | `gemini-2.5-flash-image` | gemini |
 | GPT Image, gpt-image | `gpt-image-1` | openai |
+| GPT Image 1.5 | `gpt-image-1.5` | openai |
+| GPT Image Mini, gpt-mini | `gpt-image-1-mini` | openai |
 
 When the user says "ナノバナナ2で画像作って" → use `generate_image` with `model="gemini-3.1-flash-image-preview"`.
 When the user says "Nano Banana Proで前の画像を作り直して" → use `edit_last` with `model="gemini-3-pro-image-preview"`.
@@ -182,19 +184,19 @@ The only Gemini image model with a **free tier**. Best entry point for trying im
 | Best for | Free usage, quick prototyping, learning the workflow |
 | Limitations | No 4K, no extended aspect ratios (1:4, 1:8, 4:1, 8:1, 21:9 etc.) |
 
-### gpt-image-1 (OpenAI)
+### OpenAI models
 
-OpenAI's image model with multi-output and format selection.
+3 models available. All share the same capabilities (multi-output, format selection). Same API, same parameters.
 
-| Spec | Value |
-|------|-------|
-| Resolution | Auto (model-determined) |
-| Aspect ratios | 7: `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `9:16`, `16:9` |
-| Output format | PNG, JPEG, WebP (selectable) |
-| Text rendering | Good |
-| Photorealism | High |
-| Cost | $0.02-$0.19/image |
-| Best for | Multi-output comparison, JPEG/WebP workflows, alternative style |
+| Spec | gpt-image-1 | gpt-image-1.5 | gpt-image-1-mini |
+|------|-------------|----------------|------------------|
+| Resolution | Auto | Auto | Auto |
+| Aspect ratios | 7 | 7 | 7 |
+| Output format | PNG, JPEG, WebP | PNG, JPEG, WebP | PNG, JPEG, WebP |
+| Text rendering | Good | High (improved) | Fair |
+| Speed | Standard | ~4x faster | Standard |
+| Cost | $0.02-$0.19/image | ~20% cheaper than gpt-image-1 | $0.005-$0.036/image |
+| Best for | General use | Fast iteration, text-heavy, editing precision | Budget, bulk generation |
 
 ### Model selection guide
 
@@ -205,8 +207,11 @@ OpenAI's image model with multi-output and format selection.
 | Fast iteration with 4K / extended ratios | Nano Banana 2 (`model="gemini-3.1-flash-image-preview"`) — paid |
 | Text on images (logos, cards, mockups) | Nano Banana 2 (best text rendering) — paid |
 | Ultra-wide / tall images (8:1, 1:8, 21:9) | Gemini 3.x models (14 aspect ratios) — paid |
+| Need transparent PNG (icons, logos) | OpenAI (`background="transparent"`) — paid |
 | Need JPEG/WebP output | OpenAI (`output_format="jpeg"`) — paid |
 | Multiple variations at once | OpenAI (`count=3`) — paid |
+| OpenAI fast + cheap | gpt-image-1.5 (`model="gpt-image-1.5"`) — 4x faster, 20% cheaper |
+| OpenAI ultra-budget | gpt-image-1-mini (`model="gpt-image-1-mini"`) — $0.005/image |
 | Compare providers side-by-side | Generate with Gemini, then OpenAI |
 | Budget-conscious bulk generation | Nano Banana 2 (lowest per-image cost in paid tier) |
 
@@ -227,6 +232,7 @@ Generate an image from a text prompt.
 | `resolution` | No | `1K`, `2K`, `4K` (Gemini only) |
 | `count` | No | Number of images (OpenAI only) |
 | `output_format` | No | `png`, `jpeg`, `webp` (OpenAI only) |
+| `background` | No | `transparent`, `opaque`, `auto` (OpenAI only). Use `transparent` for transparent PNG/WebP |
 | `model` | No | Model name or use alias mapping above |
 | `provider` | No | `gemini` (default) or `openai` |
 | `output` | No | Output file path |
@@ -243,6 +249,7 @@ Edit an existing image with text instructions. No mask needed — the model dete
 | `aspect_ratio` | No | Output aspect ratio |
 | `resolution` | No | Output resolution (Gemini only) |
 | `output_format` | No | `png`, `jpeg`, `webp` (OpenAI only) |
+| `background` | No | `transparent`, `opaque`, `auto` (OpenAI only) |
 | `model` | No | Model name or use alias mapping above |
 | `provider` | No | `gemini` (default) or `openai` |
 | `output` | No | Output file path |
@@ -258,6 +265,7 @@ Edit the last generated or edited image. No input path needed — automatically 
 | `aspect_ratio` | No | Output aspect ratio |
 | `resolution` | No | Output resolution (Gemini only) |
 | `output_format` | No | `png`, `jpeg`, `webp` (OpenAI only) |
+| `background` | No | `transparent`, `opaque`, `auto` (OpenAI only) |
 | `model` | No | Model name or use alias mapping above |
 | `provider` | No | `gemini` (default) or `openai` |
 | `output` | No | Output file path |
@@ -410,6 +418,13 @@ When the user describes what they need, suggest appropriate parameters and appro
 - Aspect ratio: `1:4` or `1:8` — requires Gemini 3.x models (paid)
 - Describe vertical flow — elements stacked top to bottom
 
+### Use case: Icons, logos, stickers (transparent background)
+
+- Use OpenAI with `background="transparent"` and `output_format="png"` (or `webp`)
+- JPEG does not support transparency — use PNG or WebP
+- Aspect ratio: `1:1` for icons
+- Prompt tip: Describe only the subject. Do not describe the background — the API handles removal
+
 ### Use case: WordPress / web content
 
 - Prefer `output_format="jpeg"` (OpenAI) for smaller file size
@@ -475,6 +490,60 @@ These multi-step sequences are common in real workflows:
 **Iterative detail building**: Start broad ("a coffee shop interior"), then add details step by step ("add plants by the window", "put a barista behind the counter", "add warm overhead lighting").
 
 **Style exploration**: Generate a base image, then apply different style transfers with `edit_last` to find the right mood. Use `undo_edit` to return to the base and try another style.
+
+## Writing effective prompts
+
+Structure prompts with three layers: **Subject → Context → Style**. Each layer adds specificity.
+
+### Subject (what)
+
+Name the main subject concretely. Avoid abstract descriptions.
+
+| Weak | Strong |
+|------|--------|
+| "coffee scene" | "a ceramic pour-over dripper on a wooden table with a freshly brewed cup" |
+| "developer working" | "a developer's hands on a laptop keyboard, terminal showing green text on dark background" |
+| "nature" | "a single oak tree on a grass hill, autumn leaves half-fallen" |
+
+### Context (where / when / with what)
+
+Add environment, lighting, and surrounding elements.
+
+| Element | Example |
+|---------|---------|
+| Lighting | "soft natural light from a left window", "harsh overhead fluorescent", "golden hour backlight" |
+| Setting | "in a minimalist Scandinavian kitchen", "on a rainy Tokyo street at night" |
+| Surrounding objects | "with a notebook and pen beside it", "next to a stack of books" |
+| Time/season | "early morning", "winter snowfall outside the window" |
+
+### Style (how it looks)
+
+Specify the visual treatment.
+
+| Element | Example |
+|---------|---------|
+| Photography style | "shallow depth of field, f/1.8", "wide-angle shot from below" |
+| Art style | "flat vector illustration", "watercolor with soft edges", "detailed pencil sketch" |
+| Color palette | "earth tones, warm browns and greens", "monochrome with single red accent" |
+| Mood | "calm and contemplative", "energetic and vibrant" |
+
+### Complete prompt example
+
+```
+Subject:  A barista pouring steamed milk into a latte, creating a rosetta pattern
+Context:  At a wooden counter in a small coffee shop, warm pendant light overhead, coffee equipment in the background
+Style:    Close-up shot, shallow depth of field, warm earth tones, natural lighting
+```
+
+→ `"A barista pouring steamed milk into a latte creating a rosetta pattern, at a wooden counter in a small coffee shop, warm pendant light overhead, coffee equipment in background, close-up shot, shallow depth of field, warm earth tones, natural lighting"`
+
+### Prompt tips
+
+- **Be literal, not metaphorical** — "a bridge connecting two cliffs" not "bridging the gap between ideas"
+- **Front-load the subject** — The model weights the beginning of the prompt more heavily
+- **Specify what you don't want** sparingly — "no text" or "no people" can help, but negative prompts are less reliable than positive descriptions
+- **For text in images** — Put the exact text in quotes: `"with the text 'HELLO WORLD' in bold white sans-serif at the top center"`
+- **For editing** — Describe only the change, not the entire image. "Make the sky sunset orange" not "A scene with everything the same but the sky is now sunset orange"
 
 ## Tips
 

@@ -2,7 +2,7 @@ import { Capability, type ProviderInfo } from "../../core/types.js";
 
 export const OPENAI_PROVIDER_INFO: ProviderInfo = {
   name: "openai",
-  models: ["gpt-image-1"],
+  models: ["gpt-image-1", "gpt-image-1.5", "gpt-image-1-mini"],
   defaultModel: "gpt-image-1",
   capabilities: new Set([
     Capability.TEXT_TO_IMAGE,

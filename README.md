@@ -278,7 +278,7 @@ The same `npx` pattern works with Cursor, Windsurf, Continue.dev, Cline, Zed, an
 | Provider | Models | Capabilities |
 |----------|--------|-------------|
 | Gemini | `gemini-2.5-flash-image` (Nano Banana — **free tier**, default), `gemini-3-pro-image-preview` (Nano Banana Pro), `gemini-3.1-flash-image-preview` (Nano Banana 2) | Generate, edit, aspect ratio (up to 14 ratios), resolution (up to 4K), reference images, person control |
-| OpenAI | `gpt-image-1` | Generate, edit, aspect ratio, multi-output, output format (PNG/JPEG/WebP) |
+| OpenAI | `gpt-image-1`, `gpt-image-1.5` (faster, 20% cheaper), `gpt-image-1-mini` (budget) | Generate, edit, aspect ratio, multi-output, output format (PNG/JPEG/WebP), background transparency |
 
 ## Architecture
 
@@ -364,6 +364,7 @@ imgx capabilities       # Detailed capabilities of current provider
 | `--resolution` | `-r` | `1K`, `2K`, `4K` |
 | `--count` | `-n` | Number of images to generate |
 | `--format` | `-f` | Output format: `png`, `jpeg`, `webp` (OpenAI only) |
+| `--background` | `-b` | Background: `transparent`, `opaque`, `auto` (OpenAI only) |
 | `--model` | `-m` | Model name |
 | `--provider` | | Provider name (default: `gemini`) |
 | `--output-dir` | `-d` | Output directory |

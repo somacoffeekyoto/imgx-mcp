@@ -12,6 +12,7 @@ interface GenerateArgs {
   count?: number;
   resolution?: string;
   outputFormat?: "png" | "jpeg" | "webp";
+  background?: "transparent" | "opaque" | "auto";
   model?: string;
 }
 
@@ -26,6 +27,7 @@ export async function runGenerate(
       count: args.count,
       resolution: args.resolution,
       outputFormat: args.outputFormat,
+      background: args.background,
     },
     args.model
   );

@@ -21,6 +21,7 @@ export interface GenerateInput {
   count?: number;
   resolution?: string;
   outputFormat?: "png" | "jpeg" | "webp";
+  background?: "transparent" | "opaque" | "auto";
 }
 
 export interface EditInput extends GenerateInput {

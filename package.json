@@ -1,6 +1,6 @@
 {
   "name": "imgx-mcp",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "mcpName": "io.github.somacoffeekyoto/imgx",
   "description": "AI image generation and editing for Claude Code, Codex CLI, and MCP-compatible AI agents",
   "type": "module",

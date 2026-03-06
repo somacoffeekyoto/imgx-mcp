@@ -1,17 +1,20 @@
 # Changelog
 
-## Unreleased
+## 1.6.0 (2026-03-06)
 
 ### Added
 
 - **`gemini-2.5-flash-image` (Nano Banana)** — re-added as the only Gemini image model with a **free tier** (10 RPM / 500 RPD, no credit card required). Max 1024×1024, 7 aspect ratios. Ideal entry point for users without paid API access
-- **Model aliases** — Nano Banana Pro, Nano Banana 2, Nano Banana (+ Japanese variants ナノバナナプロ, ナノバナナ2, ナノバナナ) mapped in Skill for natural language model selection
+- **`gpt-image-1.5`** — OpenAI's latest image model. ~4x faster, 20% cheaper than gpt-image-1, improved text rendering and editing precision. Same API, drop-in replacement
+- **`gpt-image-1-mini`** — Budget OpenAI model at $0.005–$0.036/image. Same API compatibility
+- **`background` parameter** — `transparent`, `opaque`, or `auto` (OpenAI only). Available on `generate_image`, `edit_image`, and `edit_last` MCP tools, and as `--background` / `-b` CLI flag. Use `transparent` for icons, logos, and stickers with transparent PNG/WebP output
+- **Model aliases** — Nano Banana Pro, Nano Banana 2, Nano Banana, GPT Image 1.5, GPT Image Mini (+ Japanese variants) mapped in Skill for natural language model selection
 
 ### Changed
 
 - **Default model changed to free tier** — `gemini-2.5-flash-image` (Nano Banana) is now the default model. Users start free (500 images/day, no credit card), and can upgrade to paid models (Nano Banana 2, Nano Banana Pro) when they need higher quality, 4K resolution, or extended aspect ratios
 - **Gemini 3.1 Flash model added** — `gemini-3.1-flash-image-preview` (Nano Banana 2) as paid alternative. Supports 4K resolution and 14 aspect ratios
-- **SKILL.md rewritten** — added detailed model specs (3 Gemini + 1 OpenAI), model selection guide, 8 use case templates, 24 editing techniques, prompt guidance, and refinement patterns
+- **SKILL.md rewritten** — added detailed model specs (3 Gemini + 3 OpenAI), model selection guide, 9 use case templates (including transparent background), 24 editing techniques, prompt enhancement guide (Subject-Context-Style framework), and refinement patterns
 - **providers.md rewritten** — 3-model comparison table with per-model capabilities
 
 ## 1.5.1 (2026-03-05)
