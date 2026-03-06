@@ -157,7 +157,7 @@ edit_last                  → imgx-a1b2c3d4-1.png
 
 Set up at least one provider:
 
-**Gemini** — get a key from [Google AI Studio](https://aistudio.google.com/apikey) (free tier available):
+**Gemini** — get a key from [Google AI Studio](https://aistudio.google.com/apikey) (free tier available for `gemini-2.5-flash-image`):
 
 ```bash
 imgx config set api-key YOUR_GEMINI_API_KEY --provider gemini
@@ -277,7 +277,7 @@ The same `npx` pattern works with Cursor, Windsurf, Continue.dev, Cline, Zed, an
 
 | Provider | Models | Capabilities |
 |----------|--------|-------------|
-| Gemini | `gemini-3-pro-image-preview` (Nano Banana Pro), `gemini-3.1-flash-image-preview` (Nano Banana 2) | Generate, edit, aspect ratio (14 ratios), resolution (1K/2K/4K), reference images, person control |
+| Gemini | `gemini-2.5-flash-image` (Nano Banana — **free tier**, default), `gemini-3-pro-image-preview` (Nano Banana Pro), `gemini-3.1-flash-image-preview` (Nano Banana 2) | Generate, edit, aspect ratio (up to 14 ratios), resolution (up to 4K), reference images, person control |
 | OpenAI | `gpt-image-1` | Generate, edit, aspect ratio, multi-output, output format (PNG/JPEG/WebP) |
 
 ## Architecture
@@ -360,7 +360,7 @@ imgx capabilities       # Detailed capabilities of current provider
 | `--output` | `-o` | Output file path (auto-generated if omitted) |
 | `--input` | `-i` | Input image to edit (`edit` command only) |
 | `--last` | `-l` | Use last output as input (`edit` command only) |
-| `--aspect-ratio` | `-a` | `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `2:3`, `3:2` |
+| `--aspect-ratio` | `-a` | `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `2:3`, `3:2` + Gemini 3.x: `1:4`, `1:8`, `4:1`, `4:5`, `5:4`, `8:1`, `21:9` |
 | `--resolution` | `-r` | `1K`, `2K`, `4K` |
 | `--count` | `-n` | Number of images to generate |
 | `--format` | `-f` | Output format: `png`, `jpeg`, `webp` (OpenAI only) |
@@ -396,7 +396,7 @@ Or create manually:
 ```json
 {
   "defaults": {
-    "model": "gemini-3.1-flash-image-preview",
+    "model": "gemini-2.5-flash-image",
     "outputDir": "./assets/images",
     "aspectRatio": "16:9"
   }

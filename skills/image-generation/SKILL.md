@@ -7,6 +7,20 @@ description: Generate and edit AI images using Gemini or OpenAI. Text-to-image, 
 
 Generate and edit images using the imgx MCP tools. Gemini and OpenAI providers supported.
 
+## Default model behavior
+
+**When the user does not specify a model, use Nano Banana (`gemini-2.5-flash-image`)** — the free tier model. This lets users start immediately without paid API access (500 images/day, no credit card).
+
+Suggest upgrading to a paid model when:
+- The user is unsatisfied with quality and wants improvement
+- The user needs 4K resolution or extended aspect ratios (1:4, 1:8, 4:1, 8:1, 21:9)
+- The user needs high text rendering accuracy (→ Nano Banana 2)
+- The user explicitly asks for higher quality or a specific paid model
+- The task clearly requires maximum quality (e.g. final production assets, print)
+
+When suggesting an upgrade, briefly explain what the paid model adds. Example:
+> "This was generated with the free model (Nano Banana). For higher resolution (up to 4K) and more aspect ratio options, I can re-generate with Nano Banana 2 or Pro — these require paid API access."
+
 ## When to use
 
 - User asks to create, generate, or make an image
@@ -23,10 +37,12 @@ Users may refer to models by their alias. Map these to the correct `model` param
 |--------------------------|----------|----------|
 | Nano Banana Pro, NanoBanana Pro, NB Pro, ナノバナナプロ | `gemini-3-pro-image-preview` | gemini |
 | Nano Banana 2, NanoBanana 2, NB2, ナノバナナ2, ナノバナナツー | `gemini-3.1-flash-image-preview` | gemini |
+| Nano Banana, NanoBanana, NB, ナノバナナ | `gemini-2.5-flash-image` | gemini |
 | GPT Image, gpt-image | `gpt-image-1` | openai |
 
 When the user says "ナノバナナ2で画像作って" → use `generate_image` with `model="gemini-3.1-flash-image-preview"`.
 When the user says "Nano Banana Proで前の画像を作り直して" → use `edit_last` with `model="gemini-3-pro-image-preview"`.
+When the user says "ナノバナナで画像作って" or "NB" → use `generate_image` with `model="gemini-2.5-flash-image"` (free tier model).
 
 ## Setup
 
@@ -96,7 +112,7 @@ Create with `npx imgx-mcp init` or manually. Shared via Git (do not put API keys
 ```json
 {
   "defaults": {
-    "model": "gemini-3.1-flash-image-preview",
+    "model": "gemini-2.5-flash-image",
     "outputDir": "./assets/images",
     "aspectRatio": "16:9"
   }
@@ -124,7 +140,7 @@ Create with `npx imgx-mcp init` or manually. Shared via Git (do not put API keys
 
 ### Nano Banana Pro — `gemini-3-pro-image-preview`
 
-Google's highest-quality image generation model. Default model.
+Google's highest-quality image generation model. Paid only.
 
 | Spec | Value |
 |------|-------|
@@ -150,6 +166,22 @@ Fast model with Pro-level capabilities at lower cost. Improved text rendering.
 | Cost | $0.045-$0.151/image (resolution dependent) |
 | Best for | Rapid iteration, text-heavy images, marketing mockups, cost-sensitive workflows |
 
+### Nano Banana — `gemini-2.5-flash-image`
+
+The only Gemini image model with a **free tier**. Best entry point for trying imgx-mcp without cost.
+
+| Spec | Value |
+|------|-------|
+| Resolution | 1K (1024px) max |
+| Aspect ratios | 7: `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `9:16`, `16:9` |
+| Output format | PNG |
+| Text rendering | Fair |
+| Photorealism | Good |
+| Free tier | **Yes** — 10 RPM / 500 RPD (no credit card required) |
+| Paid tier | $0.039/image |
+| Best for | Free usage, quick prototyping, learning the workflow |
+| Limitations | No 4K, no extended aspect ratios (1:4, 1:8, 4:1, 8:1, 21:9 etc.) |
+
 ### gpt-image-1 (OpenAI)
 
 OpenAI's image model with multi-output and format selection.
@@ -168,14 +200,17 @@ OpenAI's image model with multi-output and format selection.
 
 | Situation | Recommended model |
 |-----------|-------------------|
-| Default / general use | Nano Banana Pro (default) |
-| Fast iteration, draft ideas | Nano Banana 2 (`model="gemini-3.1-flash-image-preview"`) |
-| Text on images (logos, cards, mockups) | Nano Banana 2 (best text rendering) |
-| Ultra-wide / tall images (8:1, 1:8, 21:9) | Gemini models (14 aspect ratios) |
-| Need JPEG/WebP output | OpenAI (`output_format="jpeg"`) |
-| Multiple variations at once | OpenAI (`count=3`) |
+| **Default / no model specified** | **Nano Banana** (free, 500/day) |
+| User wants better quality | Nano Banana Pro (`model="gemini-3-pro-image-preview"`) — paid |
+| Fast iteration with 4K / extended ratios | Nano Banana 2 (`model="gemini-3.1-flash-image-preview"`) — paid |
+| Text on images (logos, cards, mockups) | Nano Banana 2 (best text rendering) — paid |
+| Ultra-wide / tall images (8:1, 1:8, 21:9) | Gemini 3.x models (14 aspect ratios) — paid |
+| Need JPEG/WebP output | OpenAI (`output_format="jpeg"`) — paid |
+| Multiple variations at once | OpenAI (`count=3`) — paid |
 | Compare providers side-by-side | Generate with Gemini, then OpenAI |
-| Budget-conscious bulk generation | Nano Banana 2 (lowest per-image cost) |
+| Budget-conscious bulk generation | Nano Banana 2 (lowest per-image cost in paid tier) |
+
+**Upgrade path**: Nano Banana (free) → Nano Banana 2 (fast, affordable paid) → Nano Banana Pro (highest quality paid)
 
 ## MCP tools
 
@@ -281,10 +316,11 @@ Change the default output directory for generated images.
 ### Blog cover image
 
 ```
-1. generate_image: prompt="A developer's desk with laptop showing terminal, coffee cup, warm morning light" aspect_ratio="16:9" resolution="2K"
+1. generate_image: prompt="A developer's desk with laptop showing terminal, coffee cup, warm morning light" aspect_ratio="16:9"
+   (uses free Nano Banana model by default)
 2. Review the result with the user
 3. edit_last: prompt="Make the color palette warmer" (if user wants changes)
-4. edit_last: prompt="Add subtle vignette effect" (further refinement)
+4. If user wants higher quality → re-generate with model="gemini-3-pro-image-preview" resolution="2K"
 ```
 
 ### Iterative refinement
@@ -335,8 +371,8 @@ When the user describes what they need, suggest appropriate parameters and appro
 ### Use case: OGP / social share images
 
 - Aspect ratio: `16:9` (Twitter/X, Facebook) or `1.91:1` (use `2:3` as closest)
-- Resolution: `2K` for sharp previews
-- Include clear text or branding — use Nano Banana 2 for reliable text rendering
+- Start with Nano Banana (free) for drafting. Upgrade to `2K` resolution with Nano Banana 2 or Pro for final
+- For text on the image — suggest Nano Banana 2 (best text rendering, paid)
 - Prompt tip: Describe the scene plus any text overlay you want rendered directly
 
 ### Use case: Blog / article cover
@@ -355,7 +391,7 @@ When the user describes what they need, suggest appropriate parameters and appro
 ### Use case: App store screenshots / product images
 
 - Aspect ratio: `9:16` (portrait), `16:9` (landscape), `1:1` (square)
-- Resolution: `4K` for retina displays
+- Draft with Nano Banana (free), then `4K` with Nano Banana 2 or Pro (paid) for retina
 - Prompt tip: Describe the device frame and screen content you want shown
 
 ### Use case: Vertical content (Stories, Reels, Shorts)
@@ -365,12 +401,13 @@ When the user describes what they need, suggest appropriate parameters and appro
 
 ### Use case: Ultra-wide banner
 
-- Aspect ratio: `21:9` or `8:1` (Gemini only)
+- Aspect ratio: `21:9` or `8:1` — requires Gemini 3.x models (paid)
 - Good for website hero banners, email headers, panoramic scenes
+- Note: Nano Banana (free) does not support extended ratios. Suggest upgrade if user needs these
 
 ### Use case: Tall / narrow (Pinterest, infographic header)
 
-- Aspect ratio: `1:4` or `1:8` (Gemini only)
+- Aspect ratio: `1:4` or `1:8` — requires Gemini 3.x models (paid)
 - Describe vertical flow — elements stacked top to bottom
 
 ### Use case: WordPress / web content
@@ -431,7 +468,7 @@ When the user wants to modify an image, suggest these proven approaches with `ed
 
 These multi-step sequences are common in real workflows:
 
-**Quality escalation**: Generate fast with Nano Banana 2, then re-generate the final version with Nano Banana Pro for higher quality.
+**Quality escalation**: Start with Nano Banana (free) for drafting. When the concept is right, offer to re-generate with Nano Banana 2 (paid, fast, 4K) or Nano Banana Pro (paid, highest quality) for the final version.
 
 **A/B comparison**: Generate the same prompt with `provider="gemini"` then `provider="openai"` and show both to the user.
 

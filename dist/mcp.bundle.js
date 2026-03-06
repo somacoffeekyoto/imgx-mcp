@@ -69664,8 +69664,12 @@ var Capability;
 // build/providers/gemini/capabilities.js
 var GEMINI_PROVIDER_INFO = {
   name: "gemini",
-  models: ["gemini-3-pro-image-preview", "gemini-3.1-flash-image-preview"],
-  defaultModel: "gemini-3-pro-image-preview",
+  models: [
+    "gemini-3-pro-image-preview",
+    "gemini-3.1-flash-image-preview",
+    "gemini-2.5-flash-image"
+  ],
+  defaultModel: "gemini-2.5-flash-image",
   capabilities: /* @__PURE__ */ new Set([
     Capability.TEXT_TO_IMAGE,
     Capability.ASPECT_RATIO,

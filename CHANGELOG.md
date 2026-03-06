@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **`gemini-2.5-flash-image` (Nano Banana)** — re-added as the only Gemini image model with a **free tier** (10 RPM / 500 RPD, no credit card required). Max 1024×1024, 7 aspect ratios. Ideal entry point for users without paid API access
+- **Model aliases** — Nano Banana Pro, Nano Banana 2, Nano Banana (+ Japanese variants ナノバナナプロ, ナノバナナ2, ナノバナナ) mapped in Skill for natural language model selection
+
+### Changed
+
+- **Default model changed to free tier** — `gemini-2.5-flash-image` (Nano Banana) is now the default model. Users start free (500 images/day, no credit card), and can upgrade to paid models (Nano Banana 2, Nano Banana Pro) when they need higher quality, 4K resolution, or extended aspect ratios
+- **Gemini 3.1 Flash model added** — `gemini-3.1-flash-image-preview` (Nano Banana 2) as paid alternative. Supports 4K resolution and 14 aspect ratios
+- **SKILL.md rewritten** — added detailed model specs (3 Gemini + 1 OpenAI), model selection guide, 8 use case templates, 24 editing techniques, prompt guidance, and refinement patterns
+- **providers.md rewritten** — 3-model comparison table with per-model capabilities
+
 ## 1.5.1 (2026-03-05)
 
 ### Fixed
