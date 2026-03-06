@@ -69886,8 +69886,9 @@ var OpenAIProvider = class {
           prompt: input.prompt,
           n: input.count || 1,
           size: mapSize(input.aspectRatio),
-          quality: mapQuality(input.resolution),
-          ...input.outputFormat ? { output_format: input.outputFormat } : {}
+          quality: input.quality || mapQuality(input.resolution),
+          ...input.outputFormat ? { output_format: input.outputFormat } : {},
+          ...input.background ? { background: input.background } : {}
         })
       });
       const json2 = await response.json();
@@ -69915,8 +69916,9 @@ var OpenAIProvider = class {
       prompt: input.prompt,
       n: String(input.count || 1),
       size: mapSize(input.aspectRatio),
-      quality: mapQuality(input.resolution),
-      ...input.outputFormat ? { output_format: input.outputFormat } : {}
+      quality: input.quality || mapQuality(input.resolution),
+      ...input.outputFormat ? { output_format: input.outputFormat } : {},
+      ...input.background ? { background: input.background } : {}
     };
     const { body, contentType: ct } = buildMultipart(fields, [
       {
@@ -69993,7 +69995,7 @@ function buildImageContent(images, paths, extra) {
 }
 var server = new McpServer({
   name: "imgx",
-  version: "1.5.1"
+  version: "1.6.0"
 });
 initGemini();
 initOpenAI();
@@ -70014,6 +70016,8 @@ server.tool("generate_image", "Generate an image from a text prompt", {
   resolution: external_exports3.enum(["1K", "2K", "4K"]).optional().describe("Output resolution"),
   count: external_exports3.number().int().min(1).max(4).optional().describe("Number of images"),
   output_format: external_exports3.enum(["png", "jpeg", "webp"]).optional().describe("Output format"),
+  background: external_exports3.enum(["transparent", "opaque", "auto"]).optional().describe("Background transparency (OpenAI only). Use 'transparent' for transparent PNG/WebP"),
+  quality: external_exports3.enum(["low", "medium", "high", "auto"]).optional().describe("Image quality (OpenAI only). Overrides resolution-based quality mapping"),
   model: external_exports3.string().optional().describe("Model name"),
   provider: external_exports3.string().optional().describe("Provider name")
 }, async (args) => {
@@ -70024,7 +70028,9 @@ server.tool("generate_image", "Generate an image from a text prompt", {
       aspectRatio: args.aspect_ratio,
       resolution: args.resolution,
       count: args.count,
-      outputFormat: args.output_format
+      outputFormat: args.output_format,
+      background: args.background,
+      quality: args.quality
     };
     const result = await prov.generate(input, args.model);
     if (!result.success || result.images.length === 0) {
@@ -70060,6 +70066,8 @@ server.tool("edit_image", "Edit an existing image with text instructions", {
   aspect_ratio: external_exports3.enum(["1:1", "2:3", "3:2", "3:4", "4:3", "9:16", "16:9"]).optional().describe("Aspect ratio"),
   resolution: external_exports3.enum(["1K", "2K", "4K"]).optional().describe("Output resolution"),
   output_format: external_exports3.enum(["png", "jpeg", "webp"]).optional().describe("Output format"),
+  background: external_exports3.enum(["transparent", "opaque", "auto"]).optional().describe("Background transparency (OpenAI only)"),
+  quality: external_exports3.enum(["low", "medium", "high", "auto"]).optional().describe("Image quality (OpenAI only)"),
   model: external_exports3.string().optional().describe("Model name"),
   provider: external_exports3.string().optional().describe("Provider name")
 }, async (args) => {
@@ -70075,7 +70083,9 @@ server.tool("edit_image", "Edit an existing image with text instructions", {
       inputImage: args.input,
       aspectRatio: args.aspect_ratio,
       resolution: args.resolution,
-      outputFormat: args.output_format
+      outputFormat: args.output_format,
+      background: args.background,
+      quality: args.quality
     };
     const result = await prov.edit(input, args.model);
     if (!result.success || result.images.length === 0) {
@@ -70105,6 +70115,8 @@ server.tool("edit_last", "Edit the last generated/edited image with new text ins
   aspect_ratio: external_exports3.enum(["1:1", "2:3", "3:2", "3:4", "4:3", "9:16", "16:9"]).optional().describe("Aspect ratio"),
   resolution: external_exports3.enum(["1K", "2K", "4K"]).optional().describe("Output resolution"),
   output_format: external_exports3.enum(["png", "jpeg", "webp"]).optional().describe("Output format"),
+  background: external_exports3.enum(["transparent", "opaque", "auto"]).optional().describe("Background transparency (OpenAI only)"),
+  quality: external_exports3.enum(["low", "medium", "high", "auto"]).optional().describe("Image quality (OpenAI only)"),
   model: external_exports3.string().optional().describe("Model name"),
   provider: external_exports3.string().optional().describe("Provider name")
 }, async (args) => {
@@ -70126,7 +70138,9 @@ server.tool("edit_last", "Edit the last generated/edited image with new text ins
       inputImage: active.filePaths[0],
       aspectRatio: args.aspect_ratio,
       resolution: args.resolution,
-      outputFormat: args.output_format
+      outputFormat: args.output_format,
+      background: args.background,
+      quality: args.quality
     };
     const result = await prov.edit(input, args.model);
     if (!result.success || result.images.length === 0) {

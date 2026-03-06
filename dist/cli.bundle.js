@@ -39745,8 +39745,9 @@ var OpenAIProvider = class {
           prompt: input.prompt,
           n: input.count || 1,
           size: mapSize(input.aspectRatio),
-          quality: mapQuality(input.resolution),
-          ...input.outputFormat ? { output_format: input.outputFormat } : {}
+          quality: input.quality || mapQuality(input.resolution),
+          ...input.outputFormat ? { output_format: input.outputFormat } : {},
+          ...input.background ? { background: input.background } : {}
         })
       });
       const json = await response.json();
@@ -39774,8 +39775,9 @@ var OpenAIProvider = class {
       prompt: input.prompt,
       n: String(input.count || 1),
       size: mapSize(input.aspectRatio),
-      quality: mapQuality(input.resolution),
-      ...input.outputFormat ? { output_format: input.outputFormat } : {}
+      quality: input.quality || mapQuality(input.resolution),
+      ...input.outputFormat ? { output_format: input.outputFormat } : {},
+      ...input.background ? { background: input.background } : {}
     };
     const { body, contentType: ct } = buildMultipart(fields, [
       {
@@ -39876,7 +39878,9 @@ async function runGenerate(provider, args) {
     aspectRatio: args.aspectRatio,
     count: args.count,
     resolution: args.resolution,
-    outputFormat: args.outputFormat
+    outputFormat: args.outputFormat,
+    background: args.background,
+    quality: args.quality
   }, args.model);
   if (!result.success || result.images.length === 0) {
     fail(result.error || "Generation failed");
@@ -39915,7 +39919,9 @@ async function runEdit(provider, args) {
     prompt: args.prompt,
     aspectRatio: args.aspectRatio,
     resolution: args.resolution,
-    outputFormat: args.outputFormat
+    outputFormat: args.outputFormat,
+    background: args.background,
+    quality: args.quality
   }, args.model);
   if (!result.success || result.images.length === 0) {
     fail(result.error || "Edit failed");
@@ -40304,7 +40310,7 @@ function runRedo() {
 }
 
 // build/cli/index.js
-var VERSION2 = "1.5.1";
+var VERSION2 = "1.6.0";
 var HELP = `imgx v${VERSION2} \u2014 AI image generation and editing for MCP-compatible AI agents
 
 Commands:
@@ -40333,6 +40339,8 @@ Options:
   -n, --count <number>       Number of images to generate
   -r, --resolution <size>    Resolution: 1K, 2K, 4K
   -f, --format <type>        Output format: png, jpeg, webp (OpenAI only)
+  -b, --background <type>    Background: transparent, opaque, auto (OpenAI only)
+  -q, --quality <level>      Quality: low, medium, high, auto (OpenAI only)
   -m, --model <model>        Model name
   --provider <name>          Provider: gemini, openai (default: gemini)
   -d, --output-dir <dir>     Output directory
@@ -40422,6 +40430,8 @@ function main() {
       count: { type: "string", short: "n" },
       resolution: { type: "string", short: "r" },
       format: { type: "string", short: "f" },
+      background: { type: "string", short: "b" },
+      quality: { type: "string", short: "q" },
       model: { type: "string", short: "m" },
       provider: { type: "string" },
       "output-dir": { type: "string", short: "d" },
@@ -40458,6 +40468,8 @@ function main() {
     aspectRatio: values["aspect-ratio"] || resolveDefault("aspectRatio") || void 0,
     resolution: values.resolution || resolveDefault("resolution") || void 0,
     outputFormat: values.format || void 0,
+    background: values.background || void 0,
+    quality: values.quality || void 0,
     model,
     count: values.count ? parseInt(values.count, 10) : void 0
   };
