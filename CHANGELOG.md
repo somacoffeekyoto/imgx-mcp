@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.6.1 (2026-03-24)
+
+### Added
+
+- **README badges** — npm version, npm downloads, Cursor Directory, MIT license
+- **"What sets imgx-mcp apart" section** — highlights context-aware prompt optimization, 24 editing techniques, and session management with undo/redo
+- **Cursor Directory link** in README Links section
+
+### Changed
+
+- **Description updated** across package.json, server.json, plugin configs — now emphasizes context-aware prompt optimization, bundled editing techniques, and session undo/redo
+- **Listed on Cursor Directory** — https://cursor.directory/plugins/imgx-mcp
+
 ## 1.6.0 (2026-03-06)
 
 ### Added

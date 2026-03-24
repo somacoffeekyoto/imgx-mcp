@@ -1,15 +1,15 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "somacoffeekyoto-imgx-mcp",
-  "description": "AI image generation and editing for Claude Code, Codex CLI, and MCP-compatible AI agents",
+  "description": "AI image generation and editing MCP server with context-aware prompt optimization, 24 editing techniques, and session undo/redo",
   "owner": {
     "name": "SOMA COFFEE KYOTO"
   },
   "plugins": [
     {
       "name": "imgx-mcp",
-      "description": "AI image generation and editing for Claude Code, Codex CLI, and MCP-compatible AI agents",
-      "version": "1.6.0",
+      "description": "AI image generation and editing MCP server with context-aware prompt optimization, 24 editing techniques, and session undo/redo",
+      "version": "1.6.1",
       "author": {
         "name": "SOMA COFFEE KYOTO"
       },

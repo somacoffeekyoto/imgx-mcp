@@ -1,8 +1,19 @@
 # imgx-mcp
 
+[![npm version](https://img.shields.io/npm/v/imgx-mcp)](https://www.npmjs.com/package/imgx-mcp)
+[![npm downloads](https://img.shields.io/npm/dw/imgx-mcp)](https://www.npmjs.com/package/imgx-mcp)
+[![Cursor Directory](https://img.shields.io/badge/Cursor_Directory-listed-blue)](https://cursor.directory/plugins/imgx-mcp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](https://opensource.org/licenses/MIT)
+
 AI image generation and editing MCP server. Works with Claude Code, Gemini CLI, Cursor, Windsurf, and any MCP-compatible tool.
 
 Generate images from text, edit existing images with text instructions, iterate on results — all from your AI coding environment.
+
+### What sets imgx-mcp apart
+
+- **No prompt engineering** — Your AI agent keeps conversation context and auto-constructs optimized prompts. Say what you need; the agent handles prompt structure, model selection, and platform-specific sizing
+- **24 editing techniques built in** — Atmosphere, composition, style transfer, element manipulation, and trending styles — bundled as a Skill your agent applies on demand
+- **Session management with undo/redo** — Edit iteratively, step back to any point, branch off, or switch between parallel sessions — version control for images
 
 ## Quick start
 
@@ -514,6 +525,7 @@ MIT — [SOMA COFFEE KYOTO](https://github.com/somacoffeekyoto)
 - [Official page](https://somacoffee.net/imgx-mcp/)
 - [GitHub](https://github.com/somacoffeekyoto/imgx-mcp)
 - [npm](https://www.npmjs.com/package/imgx-mcp)
+- [Cursor Directory](https://cursor.directory/plugins/imgx-mcp)
 - [MCP Registry](https://registry.modelcontextprotocol.io)
 - [SOMA COFFEE KYOTO](https://somacoffee.net)
 - [X (@somacoffeekyoto)](https://x.com/somacoffeekyoto)
